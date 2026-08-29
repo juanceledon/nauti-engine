@@ -14,12 +14,24 @@
       <section>
         <p class="nauti-label">Verbal Agreement</p>
         <div class="mt-3 flex items-center gap-3 rounded border border-line bg-panel px-3 py-3">
-          <span
-            class="flex size-9 shrink-0 items-center justify-center rounded-full bg-neon text-zinc-950"
-            [class.opacity-40]="!hasAgreement()"
-          >
-            <svg [lucideIcon]="icons.play" class="size-4"></svg>
-          </span>
+          @if (current.audioLink) {
+            <a
+              class="flex size-9 shrink-0 items-center justify-center rounded-full bg-neon text-zinc-950"
+              [href]="current.audioLink"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Play deal agreement audio"
+            >
+              <svg [lucideIcon]="icons.play" class="size-4"></svg>
+            </a>
+          } @else {
+            <span
+              class="flex size-9 shrink-0 items-center justify-center rounded-full bg-neon text-zinc-950"
+              [class.opacity-40]="!hasAgreement()"
+            >
+              <svg [lucideIcon]="icons.play" class="size-4"></svg>
+            </span>
+          }
           <div class="min-w-0 flex-1">
             <p class="text-sm text-ink">
               @if (hasAgreement()) {

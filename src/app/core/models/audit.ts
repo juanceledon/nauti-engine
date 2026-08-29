@@ -21,6 +21,7 @@ export interface NegotiationRow {
   status: NegotiationStatus;
   agreedName: string;
   audioSeconds: number;
+  audioLink: string;
   recapSent: boolean;
   clientName: string;
   clientPhone: string;
@@ -147,6 +148,7 @@ function rowFromCommitment(
     status: commitment.recap_sent ? 'verified' : 'pending',
     agreedName: commitment.agreed_name,
     audioSeconds: commitment.audio_timestamp,
+    audioLink: commitment.link_audio ?? '',
     recapSent: commitment.recap_sent,
     clientName: client?.name ?? '',
     clientPhone: client?.contact_phone ?? '',
@@ -175,6 +177,7 @@ function rowFromQuote(
     status: 'pending',
     agreedName: '',
     audioSeconds: 0,
+    audioLink: '',
     recapSent: false,
     clientName: client?.name ?? '',
     clientPhone: client?.contact_phone ?? '',

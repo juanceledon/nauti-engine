@@ -7,6 +7,7 @@ export interface Commitment {
   agreed_date: string;
   audio_timestamp: number;
   recap_sent: boolean;
+  link_audio?: string;
   created_at: string;
 }
 
