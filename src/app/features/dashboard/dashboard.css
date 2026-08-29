@@ -1,0 +1,110 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #07111f;
+  color: #f8fafc;
+  font-family: Arial, sans-serif;
+}
+
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+header p {
+  margin-top: 6px;
+  color: #94a3b8;
+}
+
+.status {
+  background: #123524;
+  color: #4ade80;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+.card {
+  background: #111c2d;
+  border: 1px solid #25344a;
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.quote {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #25344a;
+}
+
+.best {
+  border: 1px solid #4ade80;
+}
+
+.price {
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.metric {
+  background: #111c2d;
+  border: 1px solid #25344a;
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+}
+
+.metric strong {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.metric span {
+  color: #94a3b8;
+}
+
+.brief {
+  padding: 12px 0;
+  border-bottom: 1px solid #25344a;
+}
+
+.audit {
+  display: grid;
+  grid-template-columns: 190px 1fr 100px;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #25344a;
+}
+
+.audit span,
+.audit small {
+  color: #94a3b8;
+}

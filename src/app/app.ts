@@ -7,10 +7,11 @@ import { Navbar } from './layout/navbar/navbar';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet, Navbar, CarrierForm],
   templateUrl: './app.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative block h-screen overflow-hidden' },
-  imports: [RouterOutlet, Navbar, CarrierForm],
 })
 export class App {
   protected readonly dialog = inject(CarrierDialog);

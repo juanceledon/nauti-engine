@@ -1,0 +1,491 @@
+<div class="client-page">
+
+  <!-- TOP NAVIGATION -->
+
+  <div class="top-navigation">
+
+    <button
+      type="button"
+      class="back-button"
+      (click)="goBack()"
+    >
+      ← Clients
+    </button>
+
+    <button
+      type="button"
+      class="refresh-dashboard-button"
+      (click)="refreshDashboard()"
+      [disabled]="loadingClient || loadingKpis"
+    >
+      {{ loadingKpis ? 'Refreshing...' : 'Refresh' }}
+    </button>
+
+  </div>
+
+
+  <!-- CLIENT HEADER -->
+
+  <section class="client-header">
+
+    <div class="client-heading">
+
+      <span class="section-eyebrow">
+        CLIENT CONTROL TOWER
+      </span>
+
+      <h1>
+        {{ client?.name || 'Client Dashboard' }}
+      </h1>
+
+      <p>
+        Real-time logistics performance,
+        negotiation outcomes and autonomous agent activity.
+      </p>
+
+    </div>
+
+    <div
+      class="client-status"
+      [class.loading]="loadingKpis"
+    >
+
+      <span class="status-dot"></span>
+
+      {{ loadingKpis ? 'SYNCING' : 'LIVE' }}
+
+    </div>
+
+  </section>
+
+
+  <!-- CLIENT INFORMATION -->
+
+  <section
+    class="client-information"
+    *ngIf="client as selectedClient"
+  >
+
+    <div class="client-info-title">
+
+      <div>
+
+        <span>
+          CLIENT INFORMATION
+        </span>
+
+        <h2>
+          {{ selectedClient.name }}
+        </h2>
+
+      </div>
+
+      <span class="client-id">
+        ID: {{ selectedClient.id }}
+      </span>
+
+    </div>
+
+
+    <div class="client-info-grid">
+
+      <div class="info-item">
+
+        <span class="info-label">
+          CONTACT
+        </span>
+
+        <strong>
+          {{ selectedClient.contact_name || '—' }}
+        </strong>
+
+      </div>
+
+
+      <div class="info-item">
+
+        <span class="info-label">
+          COUNTRY
+        </span>
+
+        <strong>
+          {{ clientCountry }}
+        </strong>
+
+      </div>
+
+
+      <div class="info-item">
+
+        <span class="info-label">
+          COUNTRY CODE
+        </span>
+
+        <strong class="country-code">
+          {{ clientCountryCode || '—' }}
+        </strong>
+
+      </div>
+
+
+      <div class="info-item">
+
+        <span class="info-label">
+          PHONE
+        </span>
+
+        <strong>
+          {{ clientPhone }}
+        </strong>
+
+      </div>
+
+
+      <div class="info-item email-item">
+
+        <span class="info-label">
+          EMAIL
+        </span>
+
+        <strong>
+          {{ selectedClient.contact_email || '—' }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- CLIENT ERROR -->
+
+  <div
+    class="error-banner"
+    *ngIf="clientError && !loadingClient"
+  >
+    {{ clientError }}
+  </div>
+
+
+  <!-- KPI HEADER -->
+
+  <section class="performance-heading">
+
+    <div>
+
+      <span class="section-eyebrow">
+        AGENT PERFORMANCE
+      </span>
+
+      <h2>
+        Client KPIs
+      </h2>
+
+      <p>
+        Analytics calculated from operations
+        associated with this client.
+      </p>
+
+    </div>
+
+    <span
+      class="analytics-source"
+      *ngIf="!loadingKpis"
+    >
+      LIVE API
+    </span>
+
+  </section>
+
+
+  <!-- KPIS -->
+
+  <section class="kpi-grid">
+
+
+    <!-- ACTIVE OPERATIONS -->
+
+    <article class="kpi-card">
+
+      <div class="kpi-card-top">
+
+        <span class="kpi-label">
+          ACTIVE OPERATIONS
+        </span>
+
+        <span class="kpi-badge">
+          LIVE
+        </span>
+
+      </div>
+
+      <strong class="kpi-value">
+        {{
+          loadingKpis
+            ? '—'
+            : kpis.total_active_operations
+        }}
+      </strong>
+
+      <p class="kpi-description">
+        Operations currently being handled
+        for this client.
+      </p>
+
+    </article>
+
+
+    <!-- SAVINGS GENERATED -->
+
+    <article class="kpi-card">
+
+      <div class="kpi-card-top">
+
+        <span class="kpi-label">
+          SAVINGS GENERATED
+        </span>
+
+      </div>
+
+      <strong class="kpi-value money-value">
+        {{
+          loadingKpis
+            ? '—'
+            : formatMxn(kpis.total_savings_mxn)
+        }}
+      </strong>
+
+      <p class="kpi-description">
+        Savings versus client-authorized mandate budgets.
+      </p>
+
+    </article>
+
+
+    <!-- NEGOTIATED VALUE -->
+
+    <article class="kpi-card">
+
+      <div class="kpi-card-top">
+
+        <span class="kpi-label">
+          NEGOTIATED VALUE
+        </span>
+
+      </div>
+
+      <strong class="kpi-value money-value">
+        {{
+          loadingKpis
+            ? '—'
+            : formatMxn(
+                kpis.total_negotiated_value_mxn
+              )
+        }}
+      </strong>
+
+      <p class="kpi-description">
+        Total negotiated value recorded
+        for this client's operations.
+      </p>
+
+    </article>
+
+
+    <!-- MANDATE COMPLIANCE -->
+
+    <article class="kpi-card">
+
+      <div class="kpi-card-top">
+
+        <span class="kpi-label">
+          MANDATE COMPLIANCE
+        </span>
+
+      </div>
+
+      <strong class="kpi-value">
+        {{
+          loadingKpis
+            ? '—'
+            : formatPercentage(
+                kpis.mandate_compliance_rate
+              )
+        }}
+      </strong>
+
+      <p class="kpi-description">
+        Negotiated outcomes respecting
+        authorized client constraints.
+      </p>
+
+    </article>
+
+
+    <!-- AUTONOMOUS RESOLUTION -->
+
+    <article class="kpi-card">
+
+      <div class="kpi-card-top">
+
+        <span class="kpi-label">
+          AUTONOMOUS RESOLUTION
+        </span>
+
+      </div>
+
+      <strong class="kpi-value">
+        {{
+          loadingKpis
+            ? '—'
+            : formatPercentage(
+                kpis.autonomous_resolution_rate
+              )
+        }}
+      </strong>
+
+      <p class="kpi-description">
+        Operations resolved without human intervention.
+      </p>
+
+    </article>
+
+
+    <!-- AVG NEGOTIATION TIME -->
+
+    <article class="kpi-card">
+
+      <div class="kpi-card-top">
+
+        <span class="kpi-label">
+          AVG. NEGOTIATION TIME
+        </span>
+
+      </div>
+
+      <strong class="kpi-value">
+        {{
+          loadingKpis
+            ? '—'
+            : formatMinutes(
+                kpis.avg_negotiation_time_minutes
+              )
+        }}
+      </strong>
+
+      <p class="kpi-description">
+        Average time required to reach
+        a negotiation outcome.
+      </p>
+
+    </article>
+
+
+    <!-- VERIFIED COMMITMENTS -->
+
+    <article class="kpi-card verified-card">
+
+      <div class="kpi-card-top">
+
+        <span class="kpi-label">
+          VERIFIED COMMITMENTS
+        </span>
+
+        <span class="verified-icon">
+          ✓
+        </span>
+
+      </div>
+
+      <strong class="kpi-value">
+        {{
+          loadingKpis
+            ? '—'
+            : kpis.verified_commitments_count
+        }}
+      </strong>
+
+      <p class="kpi-description">
+        Confirmed and auditable carrier commitments.
+      </p>
+
+    </article>
+
+  </section>
+
+
+  <!-- ANALYTICS ERROR -->
+
+  <div
+    class="analytics-warning"
+    *ngIf="kpiError && !loadingKpis"
+  >
+
+    <strong>
+      Analytics temporarily unavailable
+    </strong>
+
+    <span>
+      Safe zero-value fallbacks are being displayed.
+    </span>
+
+  </div>
+
+
+  <!-- OPERATION ACTIVITY -->
+
+  <section class="activity-panel">
+
+    <div class="activity-header">
+
+      <div>
+
+        <span class="section-eyebrow">
+          OPERATION ACTIVITY
+        </span>
+
+        <h2>
+          Agent execution
+        </h2>
+
+        <p>
+          Operational detail will appear here
+          once activity is available for this client.
+        </p>
+
+      </div>
+
+      <span class="activity-status">
+        REAL DATA ONLY
+      </span>
+
+    </div>
+
+
+    <div class="empty-activity">
+
+      <div class="empty-activity-icon">
+        ↗
+      </div>
+
+      <div>
+
+        <strong>
+          No operation activity available yet
+        </strong>
+
+        <p>
+          Carrier comparisons, negotiation activity,
+          commitments and audit events will appear
+          here once the agent executes operations
+          linked to this client.
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
