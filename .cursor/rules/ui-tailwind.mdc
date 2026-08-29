@@ -1,0 +1,12 @@
+---
+description: Tailwind, DaisyUI y Lucide
+globs: src/**/*.{html,css}
+alwaysApply: false
+---
+
+# UI
+
+- Utilidades Tailwind + DaisyUI (`card`, `badge`, `btn`, `navbar`). Cero CSS-in-TS.
+- HTML semántico: `header`, `main`, `section`, `article`, `dl`, `ol`.
+- Iconos: `@lucide/angular`. Importa solo los que uses.
+- Estilos globales van en `src/styles.css`, no en un componente.

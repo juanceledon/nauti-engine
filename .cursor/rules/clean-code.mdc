@@ -1,0 +1,14 @@
+---
+description: Reglas de código limpio para todo el repo
+alwaysApply: true
+---
+
+# Clean code
+
+- Un archivo, una responsabilidad. Si un componente orquesta y pinta, parte.
+- Nombres que dicen qué son.
+- Sin magia: extrae helpers en vez de ternarios anidados en el template.
+- Borra código muerto, imports y `styleUrl` sin CSS.
+- Diff mínimo. No reformatees archivos que no tocaste.
+
+Fallos: no tragues errores. Si algo no puede pasar, el tipo no lo permite.

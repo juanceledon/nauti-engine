@@ -1,0 +1,16 @@
+---
+description: Contexto del scaffold Volta y cómo trabajar en este repo
+alwaysApply: true
+---
+
+# Volta project
+
+Scaffold Angular 21 standalone (zoneless) + Tailwind 4 + DaisyUI 5 + Lucide. Sin UI ni lógica de negocio: solo carpetas y dependencias.
+
+Antes de editar, lee `AGENTS.md`. Arranque: `npm start` → http://localhost:4200.
+
+- Tipos en `src/app/core/models/`. Datos mock en `src/app/core/mocks/`.
+- Naming 2025: `navbar.ts`, no `navbar.component.ts`.
+- Tras cambios: `npm run build`.
+
+No hagas commit/push/PR salvo que te lo pidan.

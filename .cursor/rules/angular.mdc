@@ -1,0 +1,23 @@
+---
+description: Convenciones Angular 21 standalone, signals e inputs
+globs: src/**/*.{ts,html}
+alwaysApply: false
+---
+
+# Angular
+
+- Solo standalone. `ChangeDetectionStrategy.OnPush`. Zoneless: actualiza UI con signals.
+- Estado: `input()`, `signal()`, `computed()`. No `[(ngModel)]` salvo un form real.
+- Templates: `@if`, `@for` (con `track`), `@switch`. Cero `*ngIf` / `*ngFor`.
+- `inject()` en vez de constructor DI. `readonly` en inputs y estado.
+- Importa pipes/iconos en `imports` del componente. No `CommonModule` entero.
+- Limpia timers con `DestroyRef`. No registres `onDestroy` dentro de un loop.
+
+```ts
+@Component({
+  selector: 'app-example',
+  templateUrl: './example.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class Example {}
+```
