@@ -16,9 +16,17 @@
       type="button"
       class="refresh-dashboard-button"
       (click)="refreshDashboard()"
-      [disabled]="loadingClient || loadingKpis"
+      [disabled]="
+        loadingClient ||
+        loadingKpis ||
+        loadingQuotes
+      "
     >
-      {{ loadingKpis ? 'Refreshing...' : 'Refresh' }}
+      {{
+        loadingKpis || loadingQuotes
+          ? 'Refreshing...'
+          : 'Refresh'
+      }}
     </button>
 
   </div>
@@ -40,19 +48,27 @@
 
       <p>
         Real-time logistics performance,
-        negotiation outcomes and autonomous agent activity.
+        negotiation outcomes and autonomous
+        agent activity.
       </p>
 
     </div>
 
     <div
       class="client-status"
-      [class.loading]="loadingKpis"
+      [class.loading]="
+        loadingKpis ||
+        loadingQuotes
+      "
     >
 
       <span class="status-dot"></span>
 
-      {{ loadingKpis ? 'SYNCING' : 'LIVE' }}
+      {{
+        loadingKpis || loadingQuotes
+          ? 'SYNCING'
+          : 'LIVE'
+      }}
 
     </div>
 
@@ -96,7 +112,10 @@
         </span>
 
         <strong>
-          {{ selectedClient.contact_name || '—' }}
+          {{
+            selectedClient.contact_name
+            || '—'
+          }}
         </strong>
 
       </div>
@@ -148,7 +167,10 @@
         </span>
 
         <strong>
-          {{ selectedClient.contact_email || '—' }}
+          {{
+            selectedClient.contact_email
+            || '—'
+          }}
         </strong>
 
       </div>
@@ -162,7 +184,10 @@
 
   <div
     class="error-banner"
-    *ngIf="clientError && !loadingClient"
+    *ngIf="
+      clientError &&
+      !loadingClient
+    "
   >
     {{ clientError }}
   </div>
@@ -203,9 +228,6 @@
 
   <section class="kpi-grid">
 
-
-    <!-- ACTIVE OPERATIONS -->
-
     <article class="kpi-card">
 
       <div class="kpi-card-top">
@@ -236,8 +258,6 @@
     </article>
 
 
-    <!-- SAVINGS GENERATED -->
-
     <article class="kpi-card">
 
       <div class="kpi-card-top">
@@ -252,18 +272,19 @@
         {{
           loadingKpis
             ? '—'
-            : formatMxn(kpis.total_savings_mxn)
+            : formatMxn(
+                kpis.total_savings_mxn
+              )
         }}
       </strong>
 
       <p class="kpi-description">
-        Savings versus client-authorized mandate budgets.
+        Savings versus client-authorized
+        mandate budgets.
       </p>
 
     </article>
 
-
-    <!-- NEGOTIATED VALUE -->
 
     <article class="kpi-card">
 
@@ -293,8 +314,6 @@
     </article>
 
 
-    <!-- MANDATE COMPLIANCE -->
-
     <article class="kpi-card">
 
       <div class="kpi-card-top">
@@ -316,14 +335,12 @@
       </strong>
 
       <p class="kpi-description">
-        Negotiated outcomes respecting
-        authorized client constraints.
+        Outcomes respecting authorized
+        client constraints.
       </p>
 
     </article>
 
-
-    <!-- AUTONOMOUS RESOLUTION -->
 
     <article class="kpi-card">
 
@@ -346,13 +363,12 @@
       </strong>
 
       <p class="kpi-description">
-        Operations resolved without human intervention.
+        Operations resolved without
+        human intervention.
       </p>
 
     </article>
 
-
-    <!-- AVG NEGOTIATION TIME -->
 
     <article class="kpi-card">
 
@@ -382,8 +398,6 @@
     </article>
 
 
-    <!-- VERIFIED COMMITMENTS -->
-
     <article class="kpi-card verified-card">
 
       <div class="kpi-card-top">
@@ -407,7 +421,8 @@
       </strong>
 
       <p class="kpi-description">
-        Confirmed and auditable carrier commitments.
+        Confirmed and auditable carrier
+        commitments.
       </p>
 
     </article>
@@ -415,11 +430,14 @@
   </section>
 
 
-  <!-- ANALYTICS ERROR -->
+  <!-- KPI ERROR -->
 
   <div
     class="analytics-warning"
-    *ngIf="kpiError && !loadingKpis"
+    *ngIf="
+      kpiError &&
+      !loadingKpis
+    "
   >
 
     <strong>
@@ -433,53 +451,270 @@
   </div>
 
 
-  <!-- OPERATION ACTIVITY -->
+  <!-- ===================================
+       QUOTE HISTORY
+  ==================================== -->
 
-  <section class="activity-panel">
+  <section class="quote-history-panel">
 
-    <div class="activity-header">
+    <div class="quote-history-header">
 
       <div>
 
         <span class="section-eyebrow">
-          OPERATION ACTIVITY
+          NEGOTIATION HISTORY
         </span>
 
         <h2>
-          Agent execution
+          Quote History
         </h2>
 
         <p>
-          Operational detail will appear here
-          once activity is available for this client.
+          Real carrier quotes captured by the
+          agent for this client.
         </p>
 
       </div>
 
-      <span class="activity-status">
-        REAL DATA ONLY
-      </span>
+
+      <div class="quote-count">
+
+        <strong>
+          {{
+            loadingQuotes
+              ? '—'
+              : quotes.length
+          }}
+        </strong>
+
+        <span>
+          QUOTES
+        </span>
+
+      </div>
 
     </div>
 
 
-    <div class="empty-activity">
+    <!-- QUOTE LOADING -->
 
-      <div class="empty-activity-icon">
+    <div
+      class="quote-state"
+      *ngIf="loadingQuotes"
+    >
+      Loading quote history...
+    </div>
+
+
+    <!-- QUOTE ERROR -->
+
+    <div
+      class="quote-error"
+      *ngIf="
+        quoteError &&
+        !loadingQuotes
+      "
+    >
+      {{ quoteError }}
+    </div>
+
+
+    <!-- QUOTE TABLE -->
+
+    <div
+      class="quote-table-wrapper"
+      *ngIf="
+        !loadingQuotes &&
+        quotes.length > 0
+      "
+    >
+
+      <div class="quote-table">
+
+        <div class="quote-row quote-table-header">
+
+          <span>
+            DATE
+          </span>
+
+          <span>
+            OPERATION
+          </span>
+
+          <span>
+            CARRIER
+          </span>
+
+          <span>
+            INITIAL
+          </span>
+
+          <span>
+            QUOTED PRICE
+          </span>
+
+          <span>
+            PICKUP
+          </span>
+
+          <span>
+            MANDATE
+          </span>
+
+        </div>
+
+
+        <div
+          class="quote-record"
+          *ngFor="let quote of quotes"
+        >
+
+          <div class="quote-row">
+
+            <div class="quote-date">
+
+              <strong>
+                {{
+                  formatQuoteDate(
+                    quote.created_at
+                  )
+                }}
+              </strong>
+
+              <small>
+                {{
+                  quote.quoted_date
+                  || 'Recorded quote'
+                }}
+              </small>
+
+            </div>
+
+
+            <span
+              class="quote-id"
+              [title]="quote.operation_id"
+            >
+              {{
+                shortId(
+                  quote.operation_id
+                )
+              }}
+            </span>
+
+
+            <span
+              class="carrier-id"
+              [title]="quote.carrier_id"
+            >
+              {{
+                shortId(
+                  quote.carrier_id
+                )
+              }}
+            </span>
+
+
+            <span
+              class="initial-price"
+            >
+              {{
+                formatQuoteMoney(
+                  quote.initial_price,
+                  quote.currency
+                )
+              }}
+            </span>
+
+
+            <strong class="final-price">
+              {{
+                formatQuoteMoney(
+                  quote.quoted_price,
+                  quote.currency
+                )
+              }}
+            </strong>
+
+
+            <span class="pickup-value">
+              {{
+                getPickupLabel(
+                  quote
+                )
+              }}
+            </span>
+
+
+            <span
+              class="mandate-status"
+              [class.within-mandate]="quote.valid"
+              [class.exceeds-mandate]="!quote.valid"
+            >
+              {{
+                quoteStatusLabel(
+                  quote
+                )
+              }}
+            </span>
+
+          </div>
+
+
+          <!-- CALL BRIEF -->
+
+          <div
+            class="quote-brief"
+            *ngIf="quote.call_brief"
+          >
+
+            <span>
+              CALL BRIEF
+            </span>
+
+            <p>
+              {{ quote.call_brief }}
+            </p>
+
+            <small>
+              Quote ID:
+              {{ quote.id }}
+            </small>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- EMPTY STATE -->
+
+    <div
+      class="quote-empty"
+      *ngIf="
+        !loadingQuotes &&
+        !quoteError &&
+        quotes.length === 0
+      "
+    >
+
+      <div class="quote-empty-icon">
         ↗
       </div>
 
       <div>
 
         <strong>
-          No operation activity available yet
+          No quotes recorded yet
         </strong>
 
         <p>
-          Carrier comparisons, negotiation activity,
-          commitments and audit events will appear
-          here once the agent executes operations
-          linked to this client.
+          Quotes will appear here automatically
+          when the agent saves negotiations for
+          operations linked to this client.
         </p>
 
       </div>

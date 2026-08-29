@@ -5,8 +5,6 @@ export interface Client {
   contact_phone: string;
   contact_email: string;
 
-  // Optional because the current backend
-  // may not return these fields yet.
   country?: string | null;
   country_code?: string | null;
   contact_phone_e164?: string | null;
@@ -40,7 +38,6 @@ export function clientToWrite(
     contact_name: client.contact_name,
     contact_phone: client.contact_phone,
     contact_email: client.contact_email,
-
     country: client.country ?? undefined,
     country_code: client.country_code ?? undefined,
     contact_phone_e164:
