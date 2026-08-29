@@ -1,0 +1,81 @@
+<article class="nauti-card flex min-h-0 flex-1 flex-col overflow-hidden">
+  <div class="flex items-center justify-between border-b border-line px-4 py-3">
+    <h2 class="font-display text-base font-medium">Recent Negotiations</h2>
+    <button
+      type="button"
+      class="flex items-center gap-1.5 text-sm text-neon hover:underline disabled:text-muted disabled:no-underline"
+      [disabled]="rows().length === 0"
+      (click)="exportRequested.emit()"
+    >
+      <svg [lucideIcon]="icons.download" class="size-3.5"></svg>
+      Export Log
+    </button>
+  </div>
+
+  <div class="min-h-0 flex-1 overflow-auto">
+    <table class="w-full text-left">
+      <thead class="sticky top-0 bg-panel">
+        <tr class="nauti-label border-b border-line">
+          <th class="px-4 py-2 font-medium">Deal ID</th>
+          <th class="px-4 py-2 font-medium">Route & Carrier</th>
+          <th class="px-4 py-2 font-medium">Price Negotiated</th>
+          <th class="px-4 py-2 font-medium">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loadError()) {
+          <tr>
+            <td class="px-4 py-8 text-sm text-danger" colspan="4">{{ loadError() }}</td>
+          </tr>
+        } @else if (loading()) {
+          <tr>
+            <td class="px-4 py-8 text-sm text-muted" colspan="4">Loading negotiations…</td>
+          </tr>
+        } @else if (rows().length === 0) {
+          <tr>
+            <td class="px-4 py-8 text-sm text-muted" colspan="4">
+              @if (hasAny()) {
+                No negotiations match that search.
+              } @else {
+                No negotiations yet. Quotes and commitments from Deploy Agent will show up here.
+              }
+            </td>
+          </tr>
+        } @else {
+          @for (row of rows(); track row.id) {
+            <tr
+              class="cursor-pointer border-b border-line/60 hover:bg-zinc-800/60"
+              [class.bg-neon/5]="isSelected(row.id)"
+              [class.shadow-[inset_2px_0_0_#4ade80]]="isSelected(row.id)"
+              (click)="selected.emit(row.id)"
+            >
+              <td class="px-4 py-3 font-mono text-sm" [class.text-neon]="isSelected(row.id)">
+                {{ row.dealLabel }}
+              </td>
+              <td class="px-4 py-3 text-sm text-ink">{{ row.routeLabel }}</td>
+              <td class="px-4 py-3 font-mono text-sm">
+                @if (hasPriceDrop(row)) {
+                  <span class="mr-2 text-muted line-through">{{ money(row.initialPrice ?? 0) }}</span>
+                }
+                <span class="text-neon">{{ money(row.negotiatedPrice) }}</span>
+              </td>
+              <td class="px-4 py-3">
+                @if (row.status === 'verified') {
+                  <span class="inline-flex items-center gap-1 rounded-full border border-neon/40 px-2 py-0.5 font-mono text-[10px] tracking-wide text-neon">
+                    <svg [lucideIcon]="icons.check" class="size-3"></svg>
+                    Verified
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1 rounded-full border border-zinc-600 px-2 py-0.5 font-mono text-[10px] tracking-wide text-muted">
+                    <svg [lucideIcon]="icons.hourglass" class="size-3"></svg>
+                    Pending
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</article>

@@ -1,0 +1,41 @@
+<section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+  <header class="flex flex-wrap items-center justify-between gap-4 px-6 py-6 lg:px-8">
+    <h1 class="font-display text-[32px] font-semibold tracking-[-0.02em] text-ink">
+      Audit & Verification
+    </h1>
+    <div class="flex flex-wrap items-center gap-3">
+      <label class="nauti-input flex items-center gap-2 px-3 py-2">
+        <svg [lucideIcon]="icons.search" class="size-4 text-muted"></svg>
+        <input
+          type="search"
+          class="w-56 bg-transparent text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+          placeholder="Search logs..."
+          [value]="query()"
+          (input)="onSearch($event)"
+        />
+      </label>
+    </div>
+  </header>
+
+  <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 pb-6 lg:px-8">
+    <app-audit-kpis
+      [carriersContacted]="carriersContacted()"
+      [verifiedDeals]="verifiedDeals()"
+      [complianceRate]="complianceRate()"
+    />
+    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden xl:flex-row">
+      <app-negotiations-table
+        [rows]="visibleRows()"
+        [selectedId]="selectedId()"
+        [loading]="loading()"
+        [loadError]="loadError()"
+        [hasAny]="rows().length > 0"
+        (selected)="selectRow($event)"
+        (exportRequested)="exportLog()"
+      />
+      <aside class="h-auto w-full shrink-0 xl:h-full xl:w-[22rem]">
+        <app-audit-receipt [row]="selectedRow()" />
+      </aside>
+    </div>
+  </div>
+</section>

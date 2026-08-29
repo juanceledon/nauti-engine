@@ -1,0 +1,68 @@
+<article class="nauti-card flex min-h-0 flex-1 flex-col overflow-hidden">
+  <div class="flex items-center justify-between border-b border-line px-4 py-3">
+    <h2 class="flex items-center gap-2 font-display text-base font-medium">
+      <svg [lucideIcon]="icons.truck" class="size-4 text-muted"></svg>
+      Chosen Carriers
+    </h2>
+    <button type="button" class="text-sm text-neon hover:underline" (click)="cleared.emit()">
+      Clear List
+    </button>
+  </div>
+
+  <div class="flex min-h-0 flex-1 flex-col p-4">
+    <label class="nauti-input mb-3 flex items-center gap-2 px-3 py-2">
+      <svg [lucideIcon]="icons.search" class="size-4 text-muted"></svg>
+      <input
+        type="search"
+        class="w-full bg-transparent text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+        placeholder="Search carriers, routes, phone..."
+        [value]="query()"
+        (input)="onSearch($event)"
+      />
+    </label>
+
+    <ul class="min-h-40 flex-1 overflow-y-auto">
+      @if (loadError()) {
+        <li class="px-1 py-6 text-sm text-danger">{{ loadError() }}</li>
+      } @else if (visibleCarriers().length === 0) {
+        <li class="px-1 py-6 text-sm text-muted">No carriers match that search.</li>
+      } @else {
+        @for (carrier of visibleCarriers(); track carrier.id) {
+          <li>
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 rounded px-2 py-2 text-left hover:bg-zinc-800/80"
+              [class.bg-neon/10]="isSelected(carrier.id)"
+              (click)="toggled.emit(carrier.id)"
+            >
+              <span
+                class="flex size-3.5 shrink-0 items-center justify-center rounded-[3px] border"
+                [class.border-neon]="isSelected(carrier.id)"
+                [class.bg-neon]="isSelected(carrier.id)"
+                [class.border-zinc-600]="!isSelected(carrier.id)"
+              >
+                @if (isSelected(carrier.id)) {
+                  <svg [lucideIcon]="icons.check" class="size-2.5 text-zinc-950"></svg>
+                }
+              </span>
+              <span
+                class="flex size-8 shrink-0 items-center justify-center rounded bg-raised font-mono text-[10px] text-muted"
+              >
+                {{ initials(carrier.name) }}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm text-ink">{{ carrier.name }}</span>
+                <span class="block truncate font-mono text-[11px] text-muted">
+                  {{ carrier.phone }}
+                  @if (routesOf(carrier).length) {
+                    · {{ routesOf(carrier).join(', ') }}
+                  }
+                </span>
+              </span>
+            </button>
+          </li>
+        }
+      }
+    </ul>
+  </div>
+</article>

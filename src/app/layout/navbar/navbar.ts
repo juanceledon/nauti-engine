@@ -3,13 +3,12 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
   LucideCircleHelp,
   LucideDynamicIcon,
-  LucideFileText,
   LucideLayoutDashboard,
   LucideNetwork,
   LucideRocket,
+  LucideShieldCheck,
   LucideTruck,
   LucideUserRound,
-  LucideZap,
 } from '@lucide/angular';
 
 @Component({
@@ -20,9 +19,8 @@ import {
 })
 export class Navbar {
   protected readonly icons = {
-    zap: LucideZap,
     command: LucideLayoutDashboard,
-    logs: LucideFileText,
+    logs: LucideShieldCheck,
     truck: LucideTruck,
     network: LucideNetwork,
     rocket: LucideRocket,

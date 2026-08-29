@@ -3,91 +3,88 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   OnInit,
   signal,
 } from '@angular/core';
 import {
+  LucideChevronLeft,
+  LucideChevronRight,
   LucideDynamicIcon,
   LucideExternalLink,
   LucideFilter,
-  LucideMoreHorizontal,
   LucidePlus,
   LucideSearch,
 } from '@lucide/angular';
 
-import { Carrier, CarrierWrite } from '../../core/models/carrier';
+import { Carrier, CarrierWrite, carrierRoutes } from '../../core/models/carrier';
+import { PrimaryRoute } from '../../core/models/primary-route';
 import { Quote } from '../../core/models/quote';
+import { CarrierDialog } from '../../core/services/carrier-dialog';
 import { LogisticsApi } from '../../core/services/logistics.api';
 import { carrierInitials } from '../../core/utils/initials';
 import { CarrierDetail } from './carrier-detail';
-import { CarrierForm } from './carrier-form';
 
 @Component({
   selector: 'app-carriers-directory',
   templateUrl: './carriers-directory.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-h-0 min-w-0 flex-1 overflow-hidden' },
-  imports: [LucideDynamicIcon, CarrierDetail, CarrierForm],
+  imports: [LucideDynamicIcon, CarrierDetail],
 })
 export class CarriersDirectory implements OnInit {
   private readonly api = inject(LogisticsApi);
+  private readonly dialog = inject(CarrierDialog);
+  private readonly destroyRef = inject(DestroyRef);
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly icons = {
     search: LucideSearch,
     plus: LucidePlus,
     filter: LucideFilter,
-    more: LucideMoreHorizontal,
     externalLink: LucideExternalLink,
+    prev: LucideChevronLeft,
+    next: LucideChevronRight,
   };
   protected readonly initials = carrierInitials;
+  protected readonly routesOf = carrierRoutes;
+  protected readonly pageSize = 10;
 
   protected readonly carriers = signal<Carrier[]>([]);
   protected readonly quotes = signal<Quote[]>([]);
+  protected readonly routes = signal<PrimaryRoute[]>([]);
   protected readonly query = signal('');
+  protected readonly routeFilter = signal('');
+  protected readonly page = signal(1);
+  protected readonly total = signal(0);
+  protected readonly pages = signal(1);
+  protected readonly withRouteCount = signal(0);
   protected readonly selectedId = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly formOpen = signal(false);
-  protected readonly editing = signal<Carrier | null>(null);
-  protected readonly saving = signal(false);
-  protected readonly formError = signal<string | null>(null);
-
-  protected readonly filtered = computed(() => {
-    const needle = this.query().trim().toLowerCase();
-    const rows = this.carriers();
-    if (!needle) {
-      return rows;
-    }
-    return rows.filter((carrier) =>
-      [carrier.name, carrier.id, carrier.primary_route, carrier.owner_name]
-        .join(' ')
-        .toLowerCase()
-        .includes(needle),
-    );
-  });
+  protected readonly filtersOpen = signal(false);
 
   protected readonly selected = computed(
-    () => this.filtered().find((carrier) => carrier.id === this.selectedId()) ?? null,
-  );
-
-  protected readonly withRouteCount = computed(
-    () => this.carriers().filter((carrier) => (carrier.primary_route ?? '').trim().length > 0).length,
-  );
-
-  protected readonly withContactCount = computed(
-    () =>
-      this.carriers().filter(
-        (carrier) => (carrier.email ?? '').trim() || (carrier.phone ?? '').trim(),
-      ).length,
+    () => this.carriers().find((carrier) => carrier.id === this.selectedId()) ?? null,
   );
 
   protected readonly routeCoverage = computed(() => {
-    const total = this.carriers().length;
+    const total = this.total();
     if (total === 0) {
       return 0;
     }
     return Math.round((this.withRouteCount() / total) * 100);
+  });
+
+  protected readonly rangeLabel = computed(() => {
+    const total = this.total();
+    if (total === 0) {
+      return '0 of 0';
+    }
+    const start = (this.page() - 1) * this.pageSize + 1;
+    const end = Math.min(this.page() * this.pageSize, total);
+    return `${start}–${end} of ${total}`;
   });
 
   protected readonly selectedQuotes = computed(() => {
@@ -98,25 +95,15 @@ export class CarriersDirectory implements OnInit {
     return this.quotes().filter((quote) => quote.carrier_id === id);
   });
 
-  ngOnInit(): void {
-    this.refresh();
+  constructor() {
+    this.destroyRef.onDestroy(() => this.clearSearchTimer());
   }
 
-  protected refresh(): void {
-    this.loading.set(true);
-    this.loadError.set(null);
-    this.api.listCarriers().subscribe({
-      next: (rows) => {
-        this.carriers.set(rows);
-        this.loading.set(false);
-        if (!this.selectedId() && rows[0]) {
-          this.selectedId.set(rows[0].id);
-        }
-      },
-      error: () => {
-        this.loadError.set('No se pudieron cargar los carriers.');
-        this.loading.set(false);
-      },
+  ngOnInit(): void {
+    this.refresh();
+    this.api.listPrimaryRoutes().subscribe({
+      next: (rows) => this.routes.set(rows),
+      error: () => this.routes.set([]),
     });
     this.api.listQuotes().subscribe({
       next: (rows) => this.quotes.set(rows),
@@ -124,8 +111,63 @@ export class CarriersDirectory implements OnInit {
     });
   }
 
+  protected refresh(): void {
+    this.loading.set(true);
+    this.loadError.set(null);
+    this.api
+      .listCarriers({
+        q: this.query(),
+        route: this.routeFilter(),
+        page: this.page(),
+        page_size: this.pageSize,
+      })
+      .subscribe({
+        next: (response) => {
+          this.carriers.set(response.items);
+          this.total.set(response.total);
+          this.pages.set(response.pages);
+          this.page.set(response.page);
+          this.withRouteCount.set(response.with_route_count);
+          this.loading.set(false);
+          const selected = this.selectedId();
+          if (selected && !response.items.some((carrier) => carrier.id === selected)) {
+            this.selectedId.set(response.items[0]?.id ?? null);
+          } else if (!selected && response.items[0]) {
+            this.selectedId.set(response.items[0].id);
+          }
+        },
+        error: () => {
+          this.loadError.set('Could not load carriers.');
+          this.loading.set(false);
+        },
+      });
+  }
+
   protected onSearch(event: Event): void {
     this.query.set((event.target as HTMLInputElement).value);
+    this.clearSearchTimer();
+    this.searchTimer = setTimeout(() => {
+      this.page.set(1);
+      this.refresh();
+    }, 350);
+  }
+
+  protected onRouteFilter(event: Event): void {
+    this.routeFilter.set((event.target as HTMLSelectElement).value);
+    this.page.set(1);
+    this.refresh();
+  }
+
+  protected toggleFilters(): void {
+    this.filtersOpen.update((open) => !open);
+  }
+
+  protected goToPage(nextPage: number): void {
+    if (nextPage < 1 || nextPage > this.pages() || nextPage === this.page()) {
+      return;
+    }
+    this.page.set(nextPage);
+    this.refresh();
   }
 
   protected select(carrier: Carrier): void {
@@ -133,9 +175,7 @@ export class CarriersDirectory implements OnInit {
   }
 
   protected openCreate(): void {
-    this.editing.set(null);
-    this.formError.set(null);
-    this.formOpen.set(true);
+    this.dialog.present(null, (body) => this.saveCarrier(body));
   }
 
   protected openEdit(): void {
@@ -143,39 +183,35 @@ export class CarriersDirectory implements OnInit {
     if (!current) {
       return;
     }
-    this.editing.set(current);
-    this.formError.set(null);
-    this.formOpen.set(true);
+    this.dialog.present(current, (body) => this.saveCarrier(body));
   }
 
-  protected closeForm(): void {
-    this.formOpen.set(false);
-    this.formError.set(null);
-  }
-
-  protected saveCarrier(body: CarrierWrite): void {
-    this.saving.set(true);
-    this.formError.set(null);
-    const current = this.editing();
+  private saveCarrier(body: CarrierWrite): void {
+    this.dialog.saving.set(true);
+    this.dialog.error.set(null);
+    const current = this.dialog.carrier();
     const request = current
       ? this.api.updateCarrier(current.id, body)
       : this.api.createCarrier(body);
 
     request.subscribe({
       next: (saved) => {
-        this.saving.set(false);
-        this.formOpen.set(false);
-        this.carriers.update((rows) => {
-          const without = rows.filter((row) => row.id !== saved.id);
-          return [...without, saved].sort((a, b) => a.name.localeCompare(b.name));
-        });
+        this.dialog.dismiss();
         this.selectedId.set(saved.id);
+        this.refresh();
       },
       error: (err: unknown) => {
-        this.saving.set(false);
-        this.formError.set(this.readError(err));
+        this.dialog.saving.set(false);
+        this.dialog.error.set(this.readError(err));
       },
     });
+  }
+
+  private clearSearchTimer(): void {
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = null;
+    }
   }
 
   private readError(err: unknown): string {
@@ -185,6 +221,6 @@ export class CarriersDirectory implements OnInit {
         return detail;
       }
     }
-    return 'No se pudo guardar el carrier.';
+    return 'Could not save the carrier.';
   }
 }

@@ -1,0 +1,95 @@
+<section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+  <header class="flex flex-wrap items-end justify-between gap-6 px-6 py-6 lg:px-8">
+    <div>
+      <h1 class="font-display text-[32px] font-semibold tracking-[-0.02em] text-ink">Deploy Agent</h1>
+      <p class="mt-1 text-sm text-muted">Pick one or more clients. Carriers start selected — uncheck any you want to skip.</p>
+      @if (operationIds().length === 1) {
+        <p class="mt-1 font-mono text-[11px] tracking-wide text-neon">Operation {{ operationIds()[0] }}</p>
+      } @else if (operationIds().length > 1) {
+        <p class="mt-1 font-mono text-[11px] tracking-wide text-neon">
+          {{ operationIds().length }} operations created
+        </p>
+      }
+    </div>
+    <div class="flex flex-wrap items-end gap-6">
+      <dl class="flex flex-wrap items-end gap-8">
+        <div>
+          <dt class="nauti-label">Total Carriers</dt>
+          <dd class="mt-1 font-mono text-lg text-ink">
+            {{ numberCount() }}
+            <span class="text-muted">/ {{ maxCarriers }}</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="nauti-label">Est. Duration</dt>
+          <dd class="mt-1 font-mono text-lg text-ink">{{ durationLabel() }}</dd>
+        </div>
+        <div>
+          <dt class="nauti-label">Cost Proj.</dt>
+          <dd class="mt-1 font-mono text-lg text-neon">{{ costLabel() }}</dd>
+        </div>
+      </dl>
+      <button
+        type="button"
+        class="flex items-center gap-2 rounded bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-50"
+        [disabled]="starting() || !canStart()"
+        (click)="startCalling()"
+      >
+        <svg [lucideIcon]="icons.play" class="size-4"></svg>
+        {{ starting() ? 'Starting…' : 'Start Calling' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-6 pb-6 lg:px-8">
+    @if (startError()) {
+      <p class="rounded border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+        {{ startError() }}
+      </p>
+    }
+    <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden xl:flex-row">
+      <app-client-picker
+        [clients]="clients()"
+        [selectedIds]="selectedClientIds()"
+        [loadError]="clientsError()"
+        (toggled)="toggleClient($event)"
+        (addRequested)="openClientForm()"
+      />
+      <app-carrier-picker
+        [carriers]="carriers()"
+        [selectedIds]="selectedCarrierIds()"
+        [loadError]="loadError()"
+        (toggled)="toggleCarrier($event)"
+        (cleared)="clearCarriers()"
+      />
+      <aside class="h-auto w-full shrink-0 xl:h-full xl:w-[22rem]">
+        <app-call-settings
+          [settings]="settings()"
+          (patched)="patchSettings($event)"
+        />
+      </aside>
+    </div>
+    <div class="shrink-0">
+      <app-deployment-feed [calls]="feed()" />
+    </div>
+  </div>
+</section>
+
+@if (addingClient()) {
+  <div class="absolute inset-0 z-[80] flex items-center justify-center p-4 sm:p-6">
+    <button
+      type="button"
+      class="absolute inset-0 bg-black/70"
+      aria-label="Close dialog"
+      (click)="closeClientForm()"
+    ></button>
+    <div class="relative z-10 w-full max-w-lg">
+      <app-client-form
+        [saving]="savingClient()"
+        [error]="clientFormError()"
+        (save)="saveClient($event)"
+        (cancelled)="closeClientForm()"
+      />
+    </div>
+  </div>
+}

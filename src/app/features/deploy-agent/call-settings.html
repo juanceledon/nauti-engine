@@ -1,0 +1,37 @@
+<article class="nauti-card flex min-h-0 flex-1 flex-col overflow-y-auto">
+  <div class="flex items-center gap-2 border-b border-line px-4 py-3">
+    <svg [lucideIcon]="icons.settings" class="size-4 text-muted"></svg>
+    <h2 class="font-display text-base font-medium">Call Settings</h2>
+  </div>
+
+  <div class="flex flex-col gap-6 p-4">
+    <section class="space-y-3">
+      <p class="nauti-label">Negotiation Style</p>
+      <div class="grid grid-cols-3 gap-1 rounded border border-line p-1">
+        @for (option of styles; track option) {
+          <button
+            type="button"
+            class="rounded px-2 py-1.5 text-xs"
+            [class.bg-neon]="settings().style === option"
+            [class.text-zinc-950]="settings().style === option"
+            [class.font-medium]="settings().style === option"
+            [class.text-muted]="settings().style !== option"
+            (click)="onStyle(option)"
+          >
+            {{ styleName(option) }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <label class="block space-y-1.5">
+      <span class="nauti-label">Initial Hook (Optional Override)</span>
+      <textarea
+        class="nauti-input mt-1.5 min-h-24 w-full resize-none p-3 text-sm placeholder:text-muted/70"
+        placeholder="Default: 'Hi, calling about a load from Chicago to Dallas...'"
+        [value]="settings().hook"
+        (input)="onHook($event)"
+      ></textarea>
+    </label>
+  </div>
+</article>

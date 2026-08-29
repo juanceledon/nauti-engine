@@ -27,13 +27,13 @@
     <div class="grid grid-cols-1 gap-4 px-6 md:grid-cols-3 lg:px-8">
       <article class="nauti-card p-4">
         <p class="nauti-label">Total Carriers</p>
-        <p class="mt-2 font-display text-4xl font-semibold tracking-tight">{{ carriers().length }}</p>
+        <p class="mt-2 font-display text-4xl font-semibold tracking-tight">{{ total() }}</p>
       </article>
       <article class="nauti-card p-4">
         <p class="nauti-label">Quotes logged</p>
         <p class="mt-2 font-display text-4xl font-semibold tracking-tight">
           {{ quotes().length }}
-          <span class="text-base font-normal text-muted"> / {{ carriers().length || 0 }} fleet</span>
+          <span class="text-base font-normal text-muted"> / {{ total() || 0 }} fleet</span>
         </p>
       </article>
       <article class="nauti-card p-4">
@@ -45,83 +45,139 @@
       </article>
     </div>
 
-    <div class="nauti-card mx-6 mt-6 min-h-0 flex-1 overflow-hidden lg:mx-8">
-      <div class="flex items-center justify-between border-b border-line px-4 py-3">
-        <h2 class="font-display text-base font-medium">Directory List</h2>
-        <div class="flex gap-1">
-          <button type="button" class="rounded p-1.5 text-muted hover:text-ink" aria-label="Filter">
+    <div class="nauti-card mx-6 mt-6 flex min-h-0 flex-1 flex-col overflow-hidden lg:mx-8">
+      <div class="border-b border-line">
+        <div class="flex items-center justify-between px-4 py-3">
+          <h2 class="font-display text-base font-medium">Directory List</h2>
+          <button
+            type="button"
+            class="rounded p-1.5 text-muted hover:text-ink"
+            [class.text-neon]="filtersOpen() || routeFilter()"
+            aria-label="Filter"
+            (click)="toggleFilters()"
+          >
             <svg [lucideIcon]="icons.filter" class="size-4"></svg>
           </button>
-          <button type="button" class="rounded p-1.5 text-muted hover:text-ink" aria-label="More">
-            <svg [lucideIcon]="icons.more" class="size-4"></svg>
-          </button>
         </div>
+        @if (filtersOpen()) {
+          <div class="flex flex-wrap items-center gap-3 border-t border-line px-4 py-3">
+            <label class="flex items-center gap-2">
+              <span class="nauti-label">Route</span>
+              <select
+                class="nauti-input px-2 py-1.5 font-mono text-xs"
+                [value]="routeFilter()"
+                (change)="onRouteFilter($event)"
+              >
+                <option value="">All routes</option>
+                @for (route of routes(); track route.code) {
+                  <option [value]="route.code">{{ route.label || route.code }}</option>
+                }
+              </select>
+            </label>
+          </div>
+        }
       </div>
 
       @if (loading()) {
-        <p class="p-4 font-mono text-sm text-muted">Cargando carriers…</p>
+        <p class="p-4 font-mono text-sm text-muted">Loading carriers…</p>
       } @else if (loadError()) {
         <p class="p-4 text-sm text-danger">{{ loadError() }}</p>
-      } @else if (filtered().length === 0) {
-        <p class="p-4 text-sm text-muted">No hay carriers. Agrega el primero.</p>
+      } @else if (carriers().length === 0) {
+        <p class="p-4 text-sm text-muted">No carriers found. Add the first one.</p>
       } @else {
-        <div class="h-full overflow-auto">
-          <table class="w-full min-w-[52rem] text-left text-sm">
-            <thead>
-              <tr class="nauti-label border-b border-line">
-                <th class="px-4 py-3">Carrier name</th>
-                <th class="px-4 py-3">Owner</th>
-                <th class="px-4 py-3">Phone</th>
-                <th class="px-4 py-3">Email</th>
-                <th class="px-4 py-3">Primary route</th>
-                <th class="px-4 py-3">Link</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (carrier of filtered(); track carrier.id) {
-                <tr
-                  class="cursor-pointer border-b border-line/60 hover:bg-raised/80"
-                  [class.bg-neon/5]="selectedId() === carrier.id"
-                  [class.shadow-[inset_2px_0_0_#4ade80]]="selectedId() === carrier.id"
-                  (click)="select(carrier)"
-                >
-                  <td class="px-4 py-3">
-                    <div class="flex items-center gap-3">
-                      <span
-                        class="flex size-9 items-center justify-center rounded bg-raised font-mono text-xs font-medium text-neon"
-                      >
-                        {{ initials(carrier.name) }}
-                      </span>
-                      <div>
-                        <p class="font-medium text-ink">{{ carrier.name }}</p>
-                        <p class="font-mono text-[11px] text-muted">ID: {{ carrier.id }}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 text-ink">{{ carrier.owner_name || '—' }}</td>
-                  <td class="px-4 py-3 font-mono text-xs text-muted">{{ carrier.phone || '—' }}</td>
-                  <td class="px-4 py-3 text-muted">{{ carrier.email || '—' }}</td>
-                  <td class="px-4 py-3 font-mono text-xs text-ink">{{ carrier.primary_route || '—' }}</td>
-                  <td class="px-4 py-3">
-                    @if (carrier.info_link) {
-                      <a
-                        class="inline-flex items-center gap-1 font-mono text-[11px] tracking-wide text-muted hover:text-neon"
-                        [href]="carrier.info_link"
-                        target="_blank"
-                        rel="noreferrer"
-                        (click)="$event.stopPropagation()"
-                      >
-                        VIEW
-                        <svg [lucideIcon]="icons.externalLink" class="size-3"></svg>
-                      </a>
-                    } @else {
-                      <span class="font-mono text-[11px] text-muted/40">—</span>
-                    }
-                  </td>
+        <div class="flex min-h-0 flex-1 flex-col">
+          <div class="min-h-0 flex-1 overflow-auto">
+            <table class="w-full min-w-[52rem] text-left text-sm">
+              <thead>
+                <tr class="nauti-label border-b border-line">
+                  <th class="px-4 py-3">Carrier name</th>
+                  <th class="px-4 py-3">Owner</th>
+                  <th class="px-4 py-3">Phone</th>
+                  <th class="px-4 py-3">Email</th>
+                  <th class="px-4 py-3">Routes</th>
+                  <th class="px-4 py-3">Link</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (carrier of carriers(); track carrier.id) {
+                  <tr
+                    class="cursor-pointer border-b border-line/60 hover:bg-raised/80"
+                    [class.bg-neon/5]="selectedId() === carrier.id"
+                    [class.shadow-[inset_2px_0_0_#4ade80]]="selectedId() === carrier.id"
+                    (click)="select(carrier)"
+                  >
+                    <td class="px-4 py-3">
+                      <div class="flex items-center gap-3">
+                        <span
+                          class="flex size-9 items-center justify-center rounded bg-raised font-mono text-xs font-medium text-neon"
+                        >
+                          {{ initials(carrier.name) }}
+                        </span>
+                        <div>
+                          <p class="font-medium text-ink">{{ carrier.name }}</p>
+                          <p class="font-mono text-[11px] text-muted">ID: {{ carrier.id }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 text-ink">{{ carrier.owner_name || '—' }}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-muted">{{ carrier.phone || '—' }}</td>
+                    <td class="px-4 py-3 text-muted">{{ carrier.email || '—' }}</td>
+                    <td class="px-4 py-3">
+                      @if (routesOf(carrier).length === 0) {
+                        <span class="font-mono text-xs text-muted">—</span>
+                      } @else {
+                        <div class="flex flex-wrap gap-1">
+                          @for (route of routesOf(carrier); track route) {
+                            <span class="rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-ink">{{ route }}</span>
+                          }
+                        </div>
+                      }
+                    </td>
+                    <td class="px-4 py-3">
+                      @if (carrier.info_link) {
+                        <a
+                          class="inline-flex items-center gap-1 font-mono text-[11px] tracking-wide text-muted hover:text-neon"
+                          [href]="carrier.info_link"
+                          target="_blank"
+                          rel="noreferrer"
+                          (click)="$event.stopPropagation()"
+                        >
+                          VIEW
+                          <svg [lucideIcon]="icons.externalLink" class="size-3"></svg>
+                        </a>
+                      } @else {
+                        <span class="font-mono text-[11px] text-muted/40">—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
+            <p class="font-mono text-[11px] text-muted">{{ rangeLabel() }}</p>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="rounded border border-line p-1.5 text-muted disabled:opacity-30"
+                [disabled]="page() <= 1"
+                (click)="goToPage(page() - 1)"
+                aria-label="Previous page"
+              >
+                <svg [lucideIcon]="icons.prev" class="size-4"></svg>
+              </button>
+              <span class="font-mono text-[11px] text-ink">{{ page() }} / {{ pages() }}</span>
+              <button
+                type="button"
+                class="rounded border border-line p-1.5 text-muted disabled:opacity-30"
+                [disabled]="page() >= pages()"
+                (click)="goToPage(page() + 1)"
+                aria-label="Next page"
+              >
+                <svg [lucideIcon]="icons.next" class="size-4"></svg>
+              </button>
+            </div>
+          </div>
         </div>
       }
     </div>
@@ -136,16 +192,3 @@
     />
   }
 </div>
-
-@if (formOpen()) {
-  <div class="modal modal-open">
-    <app-carrier-form
-      [carrier]="editing()"
-      [saving]="saving()"
-      [error]="formError()"
-      (save)="saveCarrier($event)"
-      (cancelled)="closeForm()"
-    />
-    <button type="button" class="modal-backdrop bg-black/50" (click)="closeForm()">close</button>
-  </div>
-}

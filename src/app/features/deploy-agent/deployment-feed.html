@@ -1,0 +1,57 @@
+<article class="nauti-card overflow-hidden">
+  <div class="flex items-center justify-between border-b border-line px-4 py-3">
+    <h2 class="flex items-center gap-2 font-display text-base font-medium">
+      <svg [lucideIcon]="icons.activity" class="size-4 text-muted"></svg>
+      Active Deployment Feed
+    </h2>
+    <p class="flex items-center gap-3 font-mono text-[11px] tracking-wide">
+      <span class="flex items-center gap-1.5 text-amber">
+        <span class="size-1.5 rounded-full bg-amber"></span>
+        Pending ({{ pendingCount() }})
+      </span>
+      <span class="flex items-center gap-1.5 text-neon">
+        <span class="size-1.5 rounded-full bg-neon"></span>
+        Connected ({{ connectedCount() }})
+      </span>
+    </p>
+  </div>
+  <ul>
+    @if (calls().length === 0) {
+      <li class="px-4 py-6 text-sm text-muted">No active calls. Select carriers and press Start Calling.</li>
+    }
+    @for (call of calls(); track call.id) {
+      <li
+        class="flex items-center gap-3 border-b border-line px-4 py-3 last:border-b-0"
+        [class.border-l-2]="isTalking(call.status)"
+        [class.border-l-neon]="isTalking(call.status)"
+        [class.bg-neon/5]="isTalking(call.status)"
+      >
+        <svg
+          [lucideIcon]="statusIcon(call.status)"
+          class="size-4"
+          [class.text-amber]="statusTone(call.status) === 'amber'"
+          [class.text-neon]="statusTone(call.status) === 'neon'"
+          [class.animate-spin]="isSpinning(call.status)"
+        ></svg>
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-sm text-ink">{{ call.label }}</span>
+          <span class="block font-mono text-[11px] text-muted">{{ call.phone }}</span>
+        </span>
+        <span
+          class="font-mono text-xs"
+          [class.text-amber]="statusTone(call.status) === 'amber'"
+          [class.text-neon]="statusTone(call.status) === 'neon'"
+        >
+          {{ statusLabel(call) }}
+        </span>
+        @if (isTalking(call.status)) {
+          <span class="flex h-4 items-end gap-0.5" aria-hidden="true">
+            <span class="h-2 w-0.5 animate-pulse bg-neon"></span>
+            <span class="h-3.5 w-0.5 animate-pulse bg-neon [animation-delay:150ms]"></span>
+            <span class="h-2.5 w-0.5 animate-pulse bg-neon [animation-delay:300ms]"></span>
+          </span>
+        }
+      </li>
+    }
+  </ul>
+</article>
