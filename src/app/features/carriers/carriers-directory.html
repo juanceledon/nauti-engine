@@ -1,0 +1,151 @@
+<div class="flex min-h-0 flex-1">
+  <section class="flex min-w-0 flex-1 flex-col overflow-hidden">
+    <header class="flex flex-wrap items-center justify-between gap-4 px-6 py-6 lg:px-8">
+      <h1 class="font-display text-[32px] font-semibold tracking-[-0.02em] text-ink">Carriers Directory</h1>
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="nauti-input flex items-center gap-2 px-3 py-2">
+          <svg [lucideIcon]="icons.search" class="size-4 text-muted"></svg>
+          <input
+            type="search"
+            class="w-56 bg-transparent text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+            placeholder="Search carriers, routes..."
+            [value]="query()"
+            (input)="onSearch($event)"
+          />
+        </label>
+        <button
+          type="button"
+          class="flex items-center gap-2 rounded border border-neon/40 px-3 py-2 text-sm text-neon hover:shadow-[0_0_10px_-2px_rgba(74,222,128,0.35)]"
+          (click)="openCreate()"
+        >
+          <svg [lucideIcon]="icons.plus" class="size-4"></svg>
+          Add New Carrier
+        </button>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 gap-4 px-6 md:grid-cols-3 lg:px-8">
+      <article class="nauti-card p-4">
+        <p class="nauti-label">Total Carriers</p>
+        <p class="mt-2 font-display text-4xl font-semibold tracking-tight">{{ carriers().length }}</p>
+      </article>
+      <article class="nauti-card p-4">
+        <p class="nauti-label">Quotes logged</p>
+        <p class="mt-2 font-display text-4xl font-semibold tracking-tight">
+          {{ quotes().length }}
+          <span class="text-base font-normal text-muted"> / {{ carriers().length || 0 }} fleet</span>
+        </p>
+      </article>
+      <article class="nauti-card p-4">
+        <p class="nauti-label">Routes covered</p>
+        <p class="mt-2 font-display text-4xl font-semibold tracking-tight">{{ withRouteCount() }}</p>
+        <div class="mt-3 h-1 overflow-hidden rounded-full bg-line">
+          <div class="h-full bg-neon" [style.width.%]="routeCoverage()"></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="nauti-card mx-6 mt-6 min-h-0 flex-1 overflow-hidden lg:mx-8">
+      <div class="flex items-center justify-between border-b border-line px-4 py-3">
+        <h2 class="font-display text-base font-medium">Directory List</h2>
+        <div class="flex gap-1">
+          <button type="button" class="rounded p-1.5 text-muted hover:text-ink" aria-label="Filter">
+            <svg [lucideIcon]="icons.filter" class="size-4"></svg>
+          </button>
+          <button type="button" class="rounded p-1.5 text-muted hover:text-ink" aria-label="More">
+            <svg [lucideIcon]="icons.more" class="size-4"></svg>
+          </button>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <p class="p-4 font-mono text-sm text-muted">Cargando carriers…</p>
+      } @else if (loadError()) {
+        <p class="p-4 text-sm text-danger">{{ loadError() }}</p>
+      } @else if (filtered().length === 0) {
+        <p class="p-4 text-sm text-muted">No hay carriers. Agrega el primero.</p>
+      } @else {
+        <div class="h-full overflow-auto">
+          <table class="w-full min-w-[52rem] text-left text-sm">
+            <thead>
+              <tr class="nauti-label border-b border-line">
+                <th class="px-4 py-3">Carrier name</th>
+                <th class="px-4 py-3">Owner</th>
+                <th class="px-4 py-3">Phone</th>
+                <th class="px-4 py-3">Email</th>
+                <th class="px-4 py-3">Primary route</th>
+                <th class="px-4 py-3">Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (carrier of filtered(); track carrier.id) {
+                <tr
+                  class="cursor-pointer border-b border-line/60 hover:bg-raised/80"
+                  [class.bg-neon/5]="selectedId() === carrier.id"
+                  [class.shadow-[inset_2px_0_0_#4ade80]]="selectedId() === carrier.id"
+                  (click)="select(carrier)"
+                >
+                  <td class="px-4 py-3">
+                    <div class="flex items-center gap-3">
+                      <span
+                        class="flex size-9 items-center justify-center rounded bg-raised font-mono text-xs font-medium text-neon"
+                      >
+                        {{ initials(carrier.name) }}
+                      </span>
+                      <div>
+                        <p class="font-medium text-ink">{{ carrier.name }}</p>
+                        <p class="font-mono text-[11px] text-muted">ID: {{ carrier.id }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-ink">{{ carrier.owner_name || '—' }}</td>
+                  <td class="px-4 py-3 font-mono text-xs text-muted">{{ carrier.phone || '—' }}</td>
+                  <td class="px-4 py-3 text-muted">{{ carrier.email || '—' }}</td>
+                  <td class="px-4 py-3 font-mono text-xs text-ink">{{ carrier.primary_route || '—' }}</td>
+                  <td class="px-4 py-3">
+                    @if (carrier.info_link) {
+                      <a
+                        class="inline-flex items-center gap-1 font-mono text-[11px] tracking-wide text-muted hover:text-neon"
+                        [href]="carrier.info_link"
+                        target="_blank"
+                        rel="noreferrer"
+                        (click)="$event.stopPropagation()"
+                      >
+                        VIEW
+                        <svg [lucideIcon]="icons.externalLink" class="size-3"></svg>
+                      </a>
+                    } @else {
+                      <span class="font-mono text-[11px] text-muted/40">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (selected(); as carrier) {
+    <app-carrier-detail
+      [carrier]="carrier"
+      [quotes]="selectedQuotes()"
+      (closed)="selectedId.set(null)"
+      (edit)="openEdit()"
+    />
+  }
+</div>
+
+@if (formOpen()) {
+  <div class="modal modal-open">
+    <app-carrier-form
+      [carrier]="editing()"
+      [saving]="saving()"
+      [error]="formError()"
+      (save)="saveCarrier($event)"
+      (cancelled)="closeForm()"
+    />
+    <button type="button" class="modal-backdrop bg-black/50" (click)="closeForm()">close</button>
+  </div>
+}

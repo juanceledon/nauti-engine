@@ -1,2 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
-@plugin "daisyui";
+
+@font-face {
+  font-family: Geist;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Geist;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-SemiBold.woff2') format('woff2');
+}
+
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "daisyui/theme" {
+  name: 'nauti';
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+  --color-base-100: #020617;
+  --color-base-200: #09090b;
+  --color-base-300: #18181b;
+  --color-base-content: #e4e1e5;
+  --color-primary: #f4f4f5;
+  --color-primary-content: #09090b;
+  --color-secondary: #4ade80;
+  --color-secondary-content: #00210c;
+  --color-accent: #4ade80;
+  --color-accent-content: #00210c;
+  --color-neutral: #18181b;
+  --color-neutral-content: #e4e1e5;
+  --color-info: #c8c5ca;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --radius-box: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-selector: 0.25rem;
+}
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: Geist, Inter, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --color-canvas: #020617;
+  --color-panel: #09090b;
+  --color-raised: #18181b;
+  --color-line: #27272a;
+  --color-ink: #e4e1e5;
+  --color-muted: #c8c5ca;
+  --color-neon: #4ade80;
+  --color-amber: #fbbf24;
+  --color-danger: #f87171;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: #020617;
+  color: #e4e1e5;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.nauti-card {
+  background: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+  border: 1px solid #27272a;
+  border-radius: 8px;
+}
+
+.nauti-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #c8c5ca;
+}
+
+.nauti-terminal {
+  background: #000;
+  border: 1px solid #27272a;
+  border-radius: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.nauti-input {
+  background: #020617;
+  border: 1px solid #27272a;
+  border-radius: 4px;
+  color: #e4e1e5;
+}
+
+.nauti-input:focus {
+  outline: none;
+  border-color: #a1a1aa;
+}

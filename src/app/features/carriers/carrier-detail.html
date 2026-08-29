@@ -1,0 +1,87 @@
+<aside class="flex h-full w-[22rem] shrink-0 flex-col border-l border-line bg-panel">
+  <header class="flex items-start justify-between gap-3 border-b border-line px-5 py-5">
+    <div class="flex items-start gap-3">
+      <span class="flex size-11 items-center justify-center rounded bg-raised font-mono text-sm font-medium text-neon">
+        {{ initials() }}
+      </span>
+      <div>
+        <h2 class="font-display font-semibold leading-tight tracking-tight">{{ carrier().name }}</h2>
+        <p class="mt-1 font-mono text-[11px] text-muted">ID: {{ carrier().id }}</p>
+      </div>
+    </div>
+    <button type="button" class="rounded p-1 text-muted hover:text-ink" (click)="closed.emit()">
+      <svg [lucideIcon]="icons.close" class="size-4"></svg>
+    </button>
+  </header>
+
+  <div class="flex gap-2 px-5 py-4">
+    <a
+      class="flex flex-1 items-center justify-center rounded bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-950"
+      [href]="'tel:' + carrier().phone"
+    >
+      Initiate Call
+    </a>
+    <button
+      type="button"
+      class="flex flex-1 items-center justify-center rounded border border-line px-3 py-2 text-sm text-muted hover:border-zinc-500 hover:text-ink"
+      (click)="edit.emit()"
+    >
+      Edit Profile
+    </button>
+  </div>
+
+  <section class="space-y-4 px-5 py-2">
+    <h3 class="nauti-label">Contact Information</h3>
+    <dl class="space-y-4 text-sm">
+      <div class="flex gap-3">
+        <svg [lucideIcon]="icons.user" class="mt-0.5 size-4 text-muted"></svg>
+        <div>
+          <dt class="font-mono text-[11px] text-muted">Primary Dispatcher</dt>
+          <dd class="text-ink">{{ carrier().owner_name || '—' }}</dd>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <svg [lucideIcon]="icons.phone" class="mt-0.5 size-4 text-muted"></svg>
+        <div>
+          <dt class="font-mono text-[11px] text-muted">Phone</dt>
+          <dd class="font-mono text-sm text-ink">{{ carrier().phone }}</dd>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <svg [lucideIcon]="icons.mail" class="mt-0.5 size-4 text-muted"></svg>
+        <div>
+          <dt class="font-mono text-[11px] text-muted">Email</dt>
+          <dd class="text-ink">{{ carrier().email || '—' }}</dd>
+        </div>
+      </div>
+    </dl>
+  </section>
+
+  <section class="min-h-0 flex-1 overflow-y-auto px-5 py-6">
+    <h3 class="nauti-label">Recent AI Negotiations</h3>
+    @if (quotes().length === 0) {
+      <p class="mt-3 text-sm text-muted">Todavía no hay cotizaciones para este carrier.</p>
+    } @else {
+      <ol class="mt-4 space-y-2">
+        @for (quote of quotes(); track quote.id) {
+          <li class="nauti-terminal p-3">
+            <div class="flex items-center justify-between gap-2">
+              <time class="text-[11px] text-zinc-500">{{ quote.quoted_date | date: 'medium' }}</time>
+              <span
+                class="font-mono text-[10px] tracking-widest"
+                [class.text-neon]="quoteTone(quote.status) === 'success'"
+                [class.text-danger]="quoteTone(quote.status) === 'error'"
+                [class.text-amber]="quoteTone(quote.status) === 'neutral'"
+              >
+                {{ quoteLabel(quote.status) }}
+              </span>
+            </div>
+            <p class="mt-2 text-zinc-300">
+              Nauti · {{ quote.call_brief || ('Quote $' + quote.quoted_price) }}
+            </p>
+          </li>
+        }
+      </ol>
+    }
+  </section>
+</aside>
