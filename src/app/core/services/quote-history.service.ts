@@ -27,16 +27,21 @@ export class QuoteHistoryService {
     private http: HttpClient
   ) {}
 
-  getQuotesByClient(
-    clientId: string
+  getQuotes(
+    clientId?: string
   ): Observable<QuoteHistoryItem[]> {
 
-    const params =
-      new HttpParams()
-        .set(
+    let params =
+      new HttpParams();
+
+    if (clientId) {
+
+      params =
+        params.set(
           'client_id',
           clientId
         );
+    }
 
     return this.http.get<QuoteHistoryItem[]>(
       `${this.baseUrl}/quotes`,
@@ -45,4 +50,14 @@ export class QuoteHistoryService {
       }
     );
   }
+
+  getQuotesByClient(
+    clientId: string
+  ): Observable<QuoteHistoryItem[]> {
+
+    return this.getQuotes(
+      clientId
+    );
+  }
+
 }

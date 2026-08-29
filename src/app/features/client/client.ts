@@ -29,14 +29,6 @@ import {
   AnalyticsService
 } from '../../core/services/analytics.service';
 
-import {
-  QuoteHistoryItem
-} from '../../core/models/quote-history';
-
-import {
-  QuoteHistoryService
-} from '../../core/services/quote-history.service';
-
 
 interface PhoneCountryInfo {
   country: string;
@@ -62,25 +54,22 @@ export class Client implements OnInit {
   kpis: AnalyticsKpis =
     emptyAnalyticsKpis();
 
-  quotes: QuoteHistoryItem[] = [];
-
   clientId = '';
 
   loadingClient = true;
+
   loadingKpis = true;
-  loadingQuotes = true;
 
   clientError = '';
+
   kpiError = '';
-  quoteError = '';
 
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private clientService: ClientService,
-    private analyticsService: AnalyticsService,
-    private quoteHistoryService: QuoteHistoryService
+    private analyticsService: AnalyticsService
   ) {}
 
 
@@ -98,7 +87,8 @@ export class Client implements OnInit {
       return;
     }
 
-    this.clientId = clientId;
+    this.clientId =
+      clientId;
 
     this.loadClient(
       clientId
@@ -107,16 +97,8 @@ export class Client implements OnInit {
     this.loadKpis(
       clientId
     );
-
-    this.loadQuotes(
-      clientId
-    );
   }
 
-
-  // =====================================
-  // CLIENT
-  // =====================================
 
   loadClient(
     clientId: string
@@ -134,14 +116,11 @@ export class Client implements OnInit {
 
         next: (client) => {
 
-          console.log(
-            'Client loaded:',
-            client
-          );
+          this.client =
+            client;
 
-          this.client = client;
-
-          this.loadingClient = false;
+          this.loadingClient =
+            false;
         },
 
         error: (error) => {
@@ -156,16 +135,13 @@ export class Client implements OnInit {
           this.clientError =
             'Could not load client information.';
 
-          this.loadingClient = false;
+          this.loadingClient =
+            false;
         }
 
       });
   }
 
-
-  // =====================================
-  // KPIS
-  // =====================================
 
   loadKpis(
     clientId: string
@@ -186,36 +162,39 @@ export class Client implements OnInit {
 
         next: (kpis) => {
 
-          console.log(
-            'Client KPIs loaded:',
-            kpis
-          );
-
           this.kpis = {
 
             total_active_operations:
-              kpis.total_active_operations ?? 0,
+              kpis.total_active_operations
+              ?? 0,
 
             total_savings_mxn:
-              kpis.total_savings_mxn ?? 0,
+              kpis.total_savings_mxn
+              ?? 0,
 
             total_negotiated_value_mxn:
-              kpis.total_negotiated_value_mxn ?? 0,
+              kpis.total_negotiated_value_mxn
+              ?? 0,
 
             autonomous_resolution_rate:
-              kpis.autonomous_resolution_rate ?? 0,
+              kpis.autonomous_resolution_rate
+              ?? 0,
 
             mandate_compliance_rate:
-              kpis.mandate_compliance_rate ?? 0,
+              kpis.mandate_compliance_rate
+              ?? 0,
 
             avg_negotiation_time_minutes:
-              kpis.avg_negotiation_time_minutes ?? 0,
+              kpis.avg_negotiation_time_minutes
+              ?? 0,
 
             verified_commitments_count:
-              kpis.verified_commitments_count ?? 0
+              kpis.verified_commitments_count
+              ?? 0
           };
 
-          this.loadingKpis = false;
+          this.loadingKpis =
+            false;
         },
 
         error: (error) => {
@@ -231,70 +210,13 @@ export class Client implements OnInit {
           this.kpiError =
             'Analytics are temporarily unavailable.';
 
-          this.loadingKpis = false;
+          this.loadingKpis =
+            false;
         }
 
       });
   }
 
-
-  // =====================================
-  // QUOTE HISTORY
-  // =====================================
-
-  loadQuotes(
-    clientId: string
-  ): void {
-
-    this.loadingQuotes = true;
-
-    this.quoteError = '';
-
-    this.quotes = [];
-
-    this.quoteHistoryService
-      .getQuotesByClient(
-        clientId
-      )
-      .subscribe({
-
-        next: (quotes) => {
-
-          console.log(
-            'Client quote history loaded:',
-            quotes
-          );
-
-          this.quotes =
-            Array.isArray(quotes)
-              ? quotes
-              : [];
-
-          this.loadingQuotes = false;
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Error loading quote history:',
-            error
-          );
-
-          this.quotes = [];
-
-          this.quoteError =
-            'Quote history is temporarily unavailable.';
-
-          this.loadingQuotes = false;
-        }
-
-      });
-  }
-
-
-  // =====================================
-  // REFRESH
-  // =====================================
 
   refreshDashboard(): void {
 
@@ -309,16 +231,8 @@ export class Client implements OnInit {
     this.loadKpis(
       this.clientId
     );
-
-    this.loadQuotes(
-      this.clientId
-    );
   }
 
-
-  // =====================================
-  // NAVIGATION
-  // =====================================
 
   goBack(): void {
 
@@ -328,10 +242,6 @@ export class Client implements OnInit {
   }
 
 
-  // =====================================
-  // COUNTRY / PHONE
-  // =====================================
-
   get clientCountry(): string {
 
     if (this.client?.country) {
@@ -340,20 +250,24 @@ export class Client implements OnInit {
 
     return (
       this.inferredPhoneInfo?.country
-      ?? 'Country not available'
+      ??
+      'Country not available'
     );
   }
 
 
   get clientCountryCode(): string {
 
-    if (this.client?.country_code) {
+    if (
+      this.client?.country_code
+    ) {
       return this.client.country_code;
     }
 
     return (
       this.inferredPhoneInfo?.countryCode
-      ?? ''
+      ??
+      ''
     );
   }
 
@@ -466,10 +380,6 @@ export class Client implements OnInit {
   }
 
 
-  // =====================================
-  // KPI FORMATTERS
-  // =====================================
-
   formatMxn(
     value: number
   ): string {
@@ -514,157 +424,13 @@ export class Client implements OnInit {
         ? value
         : 0;
 
-    if (safeValue === 1) {
+    if (
+      safeValue === 1
+    ) {
       return '1 min';
     }
 
     return `${safeValue.toFixed(1)} min`;
-  }
-
-
-  // =====================================
-  // QUOTE FORMATTERS
-  // =====================================
-
-  formatQuoteMoney(
-    value: number | null,
-    currency: string
-  ): string {
-
-    if (
-      value === null ||
-      value === undefined ||
-      !Number.isFinite(value)
-    ) {
-      return '—';
-    }
-
-    try {
-
-      return new Intl.NumberFormat(
-        'en-US',
-        {
-          style: 'currency',
-          currency:
-            currency || 'MXN',
-          maximumFractionDigits: 0
-        }
-      ).format(
-        value
-      );
-
-    } catch {
-
-      return `${value.toLocaleString()} ${currency}`;
-    }
-  }
-
-
-  formatQuoteDate(
-    value: string | null
-  ): string {
-
-    if (!value) {
-      return '—';
-    }
-
-    const date =
-      new Date(value);
-
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(
-      'en-US',
-      {
-        month: 'short',
-        day: '2-digit',
-        year: 'numeric'
-      }
-    ).format(
-      date
-    );
-  }
-
-
-  getPickupLabel(
-    quote: QuoteHistoryItem
-  ): string {
-
-    const date =
-      quote.pickup_date
-        ? this.formatQuoteDate(
-            quote.pickup_date
-          )
-        : '';
-
-    const time =
-      quote.pickup_time
-        ?? '';
-
-    if (
-      date &&
-      time
-    ) {
-      return `${date} · ${time}`;
-    }
-
-    if (date) {
-      return date;
-    }
-
-    if (time) {
-      return time;
-    }
-
-    return '—';
-  }
-
-
-  shortId(
-    value: string
-  ): string {
-
-    if (!value) {
-      return '—';
-    }
-
-    if (value.length <= 12) {
-      return value;
-    }
-
-    return `${value.slice(0, 8)}...`;
-  }
-
-
-  quoteStatusLabel(
-    quote: QuoteHistoryItem
-  ): string {
-
-    if (
-      quote.valid ||
-      quote.status === 'within_mandate'
-    ) {
-      return 'WITHIN MANDATE';
-    }
-
-    if (
-      quote.status === 'exceeds_mandate'
-    ) {
-      return 'EXCEEDS MANDATE';
-    }
-
-    return quote.status
-      .replace(
-        /_/g,
-        ' '
-      )
-      .toUpperCase();
   }
 
 }

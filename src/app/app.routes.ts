@@ -1,4 +1,6 @@
-import { Routes } from '@angular/router';
+import {
+  Routes
+} from '@angular/router';
 
 import {
   CarriersDirectory
@@ -15,6 +17,11 @@ import {
 import {
   Client
 } from './features/client/client';
+
+import {
+  QuoteHistory
+} from './features/quote-history/quote-history';
+
 
 export const routes: Routes = [
 
@@ -53,6 +60,11 @@ export const routes: Routes = [
   {
     path: 'client/:id',
     component: Client
+  },
+
+  {
+    path: 'quote-history',
+    component: QuoteHistory
   },
 
   {

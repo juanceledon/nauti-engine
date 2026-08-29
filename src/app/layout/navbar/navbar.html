@@ -27,6 +27,7 @@
 
   <nav class="flex flex-1 flex-col gap-1 px-3">
 
+    <!-- COMMAND -->
     <a
       routerLink="/command"
       routerLinkActive="border-neon/40 bg-neon/10 text-neon"
@@ -40,6 +41,7 @@
     </a>
 
 
+    <!-- LOGS -->
     <a
       routerLink="/logs"
       routerLinkActive="border-neon/40 bg-neon/10 text-neon"
@@ -53,6 +55,7 @@
     </a>
 
 
+    <!-- CARRIERS -->
     <a
       routerLink="/carriers"
       routerLinkActive="border-neon/40 bg-neon/10 text-neon"
@@ -66,15 +69,31 @@
     </a>
 
 
+    <!-- CLIENT -->
     <a
       routerLink="/client"
       routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+      [routerLinkActiveOptions]="{ exact: true }"
       class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
     >
 
       <svg [lucideIcon]="icons.network" class="size-4"></svg>
 
       Client
+
+    </a>
+
+
+    <!-- QUOTE HISTORY -->
+    <a
+      routerLink="/quote-history"
+      routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+      class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+    >
+
+      <svg [lucideIcon]="icons.logs" class="size-4"></svg>
+
+      Quote History
 
     </a>
 
