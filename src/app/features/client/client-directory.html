@@ -1,0 +1,451 @@
+<div class="directory-page">
+
+  <!-- HEADER -->
+
+  <header class="directory-header">
+
+    <div>
+      <span class="directory-eyebrow">
+        CLIENT MANAGEMENT
+      </span>
+
+      <h1>
+        Clients Directory
+      </h1>
+
+      <p>
+        Manage active clients and access their logistics control towers.
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <div class="search-box">
+        <span>⌕</span>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search clients..."
+        />
+      </div>
+
+      <button
+        type="button"
+        class="create-button"
+        (click)="openCreateClient()"
+      >
+        + Create Client
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- SUCCESS -->
+
+  <div
+    class="success-message"
+    *ngIf="successMessage"
+  >
+    ✓ {{ successMessage }}
+  </div>
+
+
+  <!-- KPIS -->
+
+  <section class="directory-kpis">
+
+    <article class="metric-card">
+
+      <span>
+        ACTIVE CLIENTS
+      </span>
+
+      <strong>
+        {{ clients.length }}
+      </strong>
+
+      <small>
+        Registered client accounts
+      </small>
+
+    </article>
+
+
+    <article class="metric-card">
+
+      <span>
+        CURRENT VIEW
+      </span>
+
+      <strong>
+        {{ filteredClients.length }}
+      </strong>
+
+      <small>
+        Clients matching search
+      </small>
+
+    </article>
+
+
+    <article class="metric-card">
+
+      <span>
+        DATA SOURCE
+      </span>
+
+      <strong class="backend-value">
+        LIVE
+      </strong>
+
+      <small>
+        Connected to Nauti API
+      </small>
+
+    </article>
+
+  </section>
+
+
+  <!-- CLIENT DIRECTORY -->
+
+  <section class="directory-panel">
+
+    <div class="panel-title">
+
+      <div>
+
+        <span class="panel-eyebrow">
+          CLIENT DATABASE
+        </span>
+
+        <h2>
+          Active Clients
+        </h2>
+
+        <p>
+          Select a client to open its logistics dashboard.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="refresh-button"
+        (click)="loadClients()"
+      >
+        Refresh
+      </button>
+
+    </div>
+
+
+    <!-- LOADING -->
+
+    <div
+      class="state-message"
+      *ngIf="loading"
+    >
+      Loading clients...
+    </div>
+
+
+    <!-- ERROR -->
+
+    <div
+      class="state-message error"
+      *ngIf="
+        errorMessage &&
+        !showCreateClient &&
+        !loading
+      "
+    >
+      {{ errorMessage }}
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div
+      class="client-table"
+      *ngIf="!loading"
+    >
+
+      <div class="client-row table-header">
+
+        <span>
+          CLIENT
+        </span>
+
+        <span>
+          CONTACT
+        </span>
+
+        <span>
+          PHONE
+        </span>
+
+        <span>
+          EMAIL
+        </span>
+
+        <span>
+          ID
+        </span>
+
+        <span>
+          ACTION
+        </span>
+
+      </div>
+
+
+      <div
+        class="client-row"
+        *ngFor="let client of filteredClients"
+      >
+
+        <!-- CLIENT -->
+
+        <div class="client-name">
+
+          <span class="client-avatar">
+            {{ client.name.charAt(0).toUpperCase() }}
+          </span>
+
+          <div class="client-name-text">
+
+            <strong>
+              {{ client.name }}
+            </strong>
+
+            <small>
+              Active client
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <!-- CONTACT -->
+
+        <span>
+          {{ client.contact_name || '—' }}
+        </span>
+
+
+        <!-- PHONE -->
+
+        <span>
+          {{ client.contact_phone || '—' }}
+        </span>
+
+
+        <!-- EMAIL -->
+
+        <span class="client-email">
+          {{ client.contact_email || '—' }}
+        </span>
+
+
+        <!-- ID -->
+
+        <span class="client-id">
+          {{ client.id }}
+        </span>
+
+
+        <!-- ACTION -->
+
+        <button
+          type="button"
+          class="open-button"
+          (click)="openClient(client)"
+        >
+          Open Dashboard →
+        </button>
+
+      </div>
+
+
+      <!-- EMPTY -->
+
+      <div
+        class="empty-state"
+        *ngIf="
+          filteredClients.length === 0 &&
+          !loading
+        "
+      >
+
+        <strong>
+          No clients found
+        </strong>
+
+        <span>
+          Try another search or create a new client.
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================
+       CREATE CLIENT MODAL
+  ====================================== -->
+
+  <div
+    class="client-modal-overlay"
+    *ngIf="showCreateClient"
+  >
+
+    <div class="client-modal-box">
+
+      <div class="client-modal-header">
+
+        <div>
+
+          <span>
+            NEW CLIENT
+          </span>
+
+          <h2>
+            Create Client
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="client-modal-close"
+          (click)="closeCreateClient()"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <p class="client-modal-description">
+        Add a client and its primary logistics contact.
+      </p>
+
+
+      <!-- ERROR -->
+
+      <div
+        class="client-modal-error"
+        *ngIf="errorMessage"
+      >
+        {{ errorMessage }}
+      </div>
+
+
+      <!-- FORM -->
+
+      <div class="client-form-grid">
+
+        <label>
+
+          <span>
+            Client Name
+          </span>
+
+          <input
+            type="text"
+            [(ngModel)]="newClient.name"
+            placeholder="Textiles Pacífico"
+          />
+
+        </label>
+
+
+        <label>
+
+          <span>
+            Contact Name
+          </span>
+
+          <input
+            type="text"
+            [(ngModel)]="newClient.contact_name"
+            placeholder="Mariana Torres"
+          />
+
+        </label>
+
+
+        <label>
+
+          <span>
+            Contact Phone
+          </span>
+
+          <input
+            type="tel"
+            [(ngModel)]="newClient.contact_phone"
+            placeholder="+57 300 000 0000"
+          />
+
+        </label>
+
+
+        <label>
+
+          <span>
+            Contact Email
+          </span>
+
+          <input
+            type="email"
+            [(ngModel)]="newClient.contact_email"
+            placeholder="contact@company.com"
+          />
+
+        </label>
+
+      </div>
+
+
+      <!-- ACTIONS -->
+
+      <div class="client-modal-actions">
+
+        <button
+          type="button"
+          class="client-cancel-button"
+          [disabled]="creating"
+          (click)="closeCreateClient()"
+        >
+          Cancel
+        </button>
+
+
+        <button
+          type="button"
+          class="client-save-button"
+          [disabled]="creating"
+          (click)="createClient()"
+        >
+          {{ creating
+            ? 'Creating...'
+            : 'Create Client'
+          }}
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
