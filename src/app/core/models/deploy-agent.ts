@@ -1,6 +1,10 @@
 import { Carrier, carrierRoutes } from './carrier';
 import { Client } from './client';
-import { NegotiationStyle, OutboundCallStatus } from './operation';
+import {
+  NegotiationStyle,
+  OutboundCall,
+  OutboundCallStatus
+} from './operation';
 
 export type { NegotiationStyle };
 
@@ -55,6 +59,7 @@ export function estimateCallDuration(count: number): string {
   const total = count * SECONDS_PER_CARRIER;
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
+
   return `~${minutes}m ${String(seconds).padStart(2, '0')}s`;
 }
 
@@ -65,6 +70,7 @@ export function projectCallCost(count: number): string {
 export function formatTalkClock(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
+
   return `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
 }
 
@@ -72,13 +78,17 @@ export function styleLabel(style: NegotiationStyle): string {
   if (style === 'aggressive') {
     return 'Aggressive';
   }
+
   if (style === 'flexible') {
     return 'Flexible';
   }
+
   return 'Balanced';
 }
 
-export function waitingCallsFromClients(clients: Client[]): DeploymentCall[] {
+export function waitingCallsFromClients(
+  clients: Client[],
+): DeploymentCall[] {
   return clients.map((client) => ({
     id: client.id,
     label: client.name.trim() || client.contact_name.trim(),
@@ -87,7 +97,9 @@ export function waitingCallsFromClients(clients: Client[]): DeploymentCall[] {
   }));
 }
 
-export function callingCallsFromClients(clients: Client[]): DeploymentCall[] {
+export function callingCallsFromClients(
+  clients: Client[],
+): DeploymentCall[] {
   return clients.map((client) => ({
     id: client.id,
     label: client.name.trim() || client.contact_name.trim(),
@@ -100,78 +112,144 @@ export function normalizePhone(value: string): string {
   return value.replace(/\D/g, '');
 }
 
-export function deploymentStatusFromProvider(status: string): DeploymentStatus {
+export function deploymentStatusFromProvider(
+  status: string,
+): DeploymentStatus {
   const normalized = status.trim().toLowerCase();
-  if (normalized === 'ongoing' || normalized === 'in_progress' || normalized === 'talking') {
+
+  if (
+    normalized === 'ongoing' ||
+    normalized === 'in_progress' ||
+    normalized === 'talking'
+  ) {
     return 'talking';
   }
-  if (normalized === 'ended' || normalized === 'completed') {
+
+  if (
+    normalized === 'ended' ||
+    normalized === 'completed'
+  ) {
     return 'ended';
   }
-  if (normalized === 'error' || normalized === 'failed' || normalized === 'not_connected') {
+
+  if (
+    normalized === 'error' ||
+    normalized === 'failed' ||
+    normalized === 'not_connected'
+  ) {
     return 'failed';
   }
-  if (normalized === 'registered' || normalized === 'queued' || normalized === 'ringing') {
+
+  if (
+    normalized === 'registered' ||
+    normalized === 'queued' ||
+    normalized === 'ringing'
+  ) {
     return 'registered';
   }
+
   if (normalized === 'waiting') {
     return 'waiting';
   }
+
   return 'calling';
 }
 
-export function liveCallStatusLabel(status: DeploymentStatus, talkSeconds?: number): string {
+export function liveCallStatusLabel(
+  status: DeploymentStatus,
+  talkSeconds?: number,
+): string {
   if (status === 'talking') {
-    return talkSeconds != null ? `Talking [${formatTalkClock(talkSeconds)}]` : 'Talking';
+    return talkSeconds != null
+      ? `Talking [${formatTalkClock(talkSeconds)}]`
+      : 'Talking';
   }
+
   if (status === 'waiting') {
     return 'Waiting';
   }
+
   if (status === 'registered') {
     return 'Registered';
   }
+
   if (status === 'ended') {
     return 'Ended';
   }
+
   if (status === 'failed') {
     return 'Failed';
   }
+
   return 'Calling...';
 }
 
 export function applyLiveCallStatus(
   rows: DeploymentCall[],
-  live: OutboundCallStatus[],
+  live: OutboundCall[],
 ): DeploymentCall[] {
   return rows.map((row) => {
-    const match = findMatchingLiveCall(live, row);
+    const match = findMatchingLiveCall(
+      live,
+      row
+    );
+
     if (!match?.call_status?.trim()) {
       return row;
     }
-    const status = deploymentStatusFromProvider(match.call_status);
+
+    const status =
+      deploymentStatusFromProvider(
+        match.call_status
+      );
+
     return {
       ...row,
-      phone: match.to_number || match.contact_phone || row.phone,
+      phone:
+        match.to_number ||
+        match.contact_phone ||
+        row.phone,
       status,
     };
   });
 }
 
 function findMatchingLiveCall(
-  live: OutboundCallStatus[],
+  live: OutboundCall[],
   row: DeploymentCall,
-): OutboundCallStatus | undefined {
-  const phone = normalizePhone(row.phone);
+): OutboundCall | undefined {
+  const phone =
+    normalizePhone(
+      row.phone
+    );
+
   return live.find((call) => {
-    if (call.client_id && call.client_id === row.id) {
+    if (
+      call.client_id &&
+      call.client_id === row.id
+    ) {
       return true;
     }
-    const callPhone = normalizePhone(call.contact_phone || call.to_number || '');
-    return Boolean(phone && callPhone && callPhone === phone);
+
+    const callPhone =
+      normalizePhone(
+        call.contact_phone ||
+        call.to_number ||
+        ''
+      );
+
+    return Boolean(
+      phone &&
+      callPhone &&
+      callPhone === phone
+    );
   });
 }
 
-export function carrierMatchesSearch(carrier: Carrier, needle: string): boolean {
+export function carrierMatchesSearch(
+  carrier: Carrier,
+  needle: string,
+): boolean {
   const haystack = [
     carrier.name,
     carrier.owner_name,
@@ -181,10 +259,16 @@ export function carrierMatchesSearch(carrier: Carrier, needle: string): boolean 
   ]
     .join(' ')
     .toLowerCase();
-  return haystack.includes(needle.toLowerCase());
+
+  return haystack.includes(
+    needle.toLowerCase()
+  );
 }
 
-export function clientMatchesSearch(client: Client, needle: string): boolean {
+export function clientMatchesSearch(
+  client: Client,
+  needle: string,
+): boolean {
   const haystack = [
     client.name,
     client.contact_name,
@@ -194,5 +278,8 @@ export function clientMatchesSearch(client: Client, needle: string): boolean {
   ]
     .join(' ')
     .toLowerCase();
-  return haystack.includes(needle.toLowerCase());
+
+  return haystack.includes(
+    needle.toLowerCase()
+  );
 }

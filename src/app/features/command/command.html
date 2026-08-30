@@ -1,0 +1,1132 @@
+<div class="command-page">
+
+  <!-- HEADER -->
+  <header class="command-header">
+
+    <div>
+      <span class="eyebrow">
+        COMMAND CENTER
+      </span>
+
+      <h1>
+        Deploy Volta Agent
+      </h1>
+
+      <p>
+        Build a freight negotiation mandate
+        through a guided conversation.
+      </p>
+    </div>
+
+    <div class="agent-status">
+      <span class="status-dot"></span>
+
+      <div>
+        <strong>VOLTA ONLINE</strong>
+        <small>Negotiation Agent</small>
+      </div>
+    </div>
+
+  </header>
+
+
+  <!-- CHAT -->
+  <section class="chat-shell">
+
+    <div class="chat-topbar">
+
+      <div class="chat-agent">
+
+        <div class="avatar avatar-large">
+          V
+        </div>
+
+        <div>
+          <strong>
+            Volta
+          </strong>
+
+          <span>
+            Freight Negotiation Agent
+          </span>
+        </div>
+
+      </div>
+
+      <div class="secure-label">
+        ● SECURE SESSION
+      </div>
+
+    </div>
+
+
+    <div class="chat-window">
+
+
+      <!-- =========================================
+           CLIENT QUESTION
+      ========================================== -->
+
+      <div class="message-row bot">
+
+        <div class="avatar">
+          V
+        </div>
+
+        <div class="message">
+
+          <span class="speaker">
+            VOLTA
+          </span>
+
+          <p>
+            Hi. I'll help you create a new
+            freight negotiation mandate.
+            Which client is this operation for?
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- CLIENT SELECTOR -->
+
+      <div
+        class="client-selector"
+        *ngIf="step === 'client'"
+      >
+
+        <input
+          type="text"
+          [(ngModel)]="clientSearch"
+          placeholder="Search client by name, contact or email..."
+          autocomplete="off"
+        />
+
+
+        <div
+          class="client-options"
+          *ngIf="!loadingClients"
+        >
+
+          <button
+            type="button"
+            *ngFor="let client of filteredClients"
+            (click)="selectClient(client)"
+          >
+
+            <div class="client-main">
+
+              <div class="client-icon">
+                {{ client.name.charAt(0) }}
+              </div>
+
+              <div>
+
+                <strong>
+                  {{ client.name }}
+                </strong>
+
+                <span>
+                  {{ client.contact_name || 'No contact name' }}
+                </span>
+
+              </div>
+
+            </div>
+
+            <div class="client-contact">
+
+              <small>
+                {{ client.contact_phone || '—' }}
+              </small>
+
+              <small>
+                {{ client.contact_email || '—' }}
+              </small>
+
+            </div>
+
+          </button>
+
+        </div>
+
+
+        <div
+          class="loading-message"
+          *ngIf="loadingClients"
+        >
+          Loading clients...
+        </div>
+
+
+        <div
+          class="client-empty"
+          *ngIf="
+            !loadingClients &&
+            filteredClients.length === 0
+          "
+        >
+          No clients found.
+        </div>
+
+      </div>
+
+
+      <!-- SELECTED CLIENT -->
+
+      <div
+        class="message-row user"
+        *ngIf="selectedClient"
+      >
+
+        <div class="message user-message">
+
+          <span class="speaker">
+            YOU
+          </span>
+
+          <p>
+            {{ selectedClient.name }}
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- =========================================
+           ORIGIN
+      ========================================== -->
+
+      <ng-container
+        *ngIf="
+          step !== 'client' &&
+          selectedClient
+        "
+      >
+
+        <div
+          class="message-row bot message-enter"
+          *ngIf="!isTyping"
+        >
+
+          <div class="avatar">
+            V
+          </div>
+
+          <div class="message">
+
+            <span class="speaker">
+              VOLTA
+            </span>
+
+            <p>
+              Where should we pick up
+              the shipment?
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="answer-box"
+          *ngIf="
+            step === 'origin' &&
+            !isTyping
+          "
+        >
+
+          <div class="input-row">
+
+            <input
+              type="text"
+              [(ngModel)]="operation.origin"
+              placeholder="e.g. Manzanillo"
+              autocomplete="off"
+              (keyup.enter)="submitOrigin()"
+            />
+
+            <button
+              type="button"
+              class="continue-button"
+              (click)="submitOrigin()"
+            >
+              Continue
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          <div class="quick-answers">
+
+            <span class="quick-label">
+              QUICK ANSWERS
+            </span>
+
+            <div class="quick-options">
+
+              <button
+                type="button"
+                *ngFor="let option of originSuggestions"
+                (click)="chooseOrigin(option)"
+              >
+                {{ option }}
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="message-row user message-enter"
+          *ngIf="
+            operation.origin &&
+            step !== 'origin'
+          "
+        >
+
+          <div class="message user-message">
+
+            <span class="speaker">
+              YOU
+            </span>
+
+            <p>
+              {{ operation.origin }}
+            </p>
+
+          </div>
+
+        </div>
+
+      </ng-container>
+
+
+      <!-- =========================================
+           DESTINATION
+      ========================================== -->
+
+      <ng-container
+        *ngIf="
+          step === 'destination' ||
+          step === 'price' ||
+          step === 'currency' ||
+          step === 'date' ||
+          step === 'review' ||
+          step === 'created'
+        "
+      >
+
+        <div
+          class="message-row bot message-enter"
+          *ngIf="!isTyping"
+        >
+
+          <div class="avatar">
+            V
+          </div>
+
+          <div class="message">
+
+            <span class="speaker">
+              VOLTA
+            </span>
+
+            <p>
+              Got it. What is the
+              destination?
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="answer-box"
+          *ngIf="
+            step === 'destination' &&
+            !isTyping
+          "
+        >
+
+          <div class="input-row">
+
+            <input
+              type="text"
+              [(ngModel)]="operation.destination"
+              placeholder="e.g. Guadalajara"
+              autocomplete="off"
+              (keyup.enter)="submitDestination()"
+            />
+
+            <button
+              type="button"
+              class="continue-button"
+              (click)="submitDestination()"
+            >
+              Continue
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          <div class="quick-answers">
+
+            <span class="quick-label">
+              QUICK ANSWERS
+            </span>
+
+            <div class="quick-options">
+
+              <button
+                type="button"
+                *ngFor="let option of destinationSuggestions"
+                (click)="chooseDestination(option)"
+              >
+                {{ option }}
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="message-row user message-enter"
+          *ngIf="
+            operation.destination &&
+            step !== 'destination'
+          "
+        >
+
+          <div class="message user-message">
+
+            <span class="speaker">
+              YOU
+            </span>
+
+            <p>
+              {{ operation.destination }}
+            </p>
+
+          </div>
+
+        </div>
+
+      </ng-container>
+
+
+      <!-- =========================================
+           PRICE
+      ========================================== -->
+
+      <ng-container
+        *ngIf="
+          step === 'price' ||
+          step === 'currency' ||
+          step === 'date' ||
+          step === 'review' ||
+          step === 'created'
+        "
+      >
+
+        <div
+          class="message-row bot message-enter"
+          *ngIf="!isTyping"
+        >
+
+          <div class="avatar">
+            V
+          </div>
+
+          <div class="message">
+
+            <span class="speaker">
+              VOLTA
+            </span>
+
+            <p>
+              What is the maximum price
+              authorized for this shipment?
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="answer-box"
+          *ngIf="
+            step === 'price' &&
+            !isTyping
+          "
+        >
+
+          <div class="input-row">
+
+            <input
+              type="number"
+              min="1"
+              [(ngModel)]="operation.mandate_max_price"
+              placeholder="e.g. 8500"
+              (keyup.enter)="submitPrice()"
+            />
+
+            <button
+              type="button"
+              class="continue-button"
+              (click)="submitPrice()"
+            >
+              Continue
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          <div class="quick-answers">
+
+            <span class="quick-label">
+              SUGGESTED CAPS
+            </span>
+
+            <div class="quick-options">
+
+              <button
+                type="button"
+                *ngFor="let option of priceSuggestions"
+                (click)="choosePrice(option)"
+              >
+                {{ option | number }}
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="message-row user message-enter"
+          *ngIf="
+            operation.mandate_max_price &&
+            step !== 'price'
+          "
+        >
+
+          <div class="message user-message">
+
+            <span class="speaker">
+              YOU
+            </span>
+
+            <p>
+              {{ operation.mandate_max_price | number }}
+            </p>
+
+          </div>
+
+        </div>
+
+      </ng-container>
+
+
+      <!-- =========================================
+           CURRENCY
+      ========================================== -->
+
+      <ng-container
+        *ngIf="
+          step === 'currency' ||
+          step === 'date' ||
+          step === 'review' ||
+          step === 'created'
+        "
+      >
+
+        <div
+          class="message-row bot message-enter"
+          *ngIf="!isTyping"
+        >
+
+          <div class="avatar">
+            V
+          </div>
+
+          <div class="message">
+
+            <span class="speaker">
+              VOLTA
+            </span>
+
+            <p>
+              Which currency should I use
+              for the negotiation?
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="answer-box"
+          *ngIf="
+            step === 'currency' &&
+            !isTyping
+          "
+        >
+
+          <div class="input-row">
+
+            <select
+              [(ngModel)]="operation.currency"
+            >
+
+              <option value="MXN">
+                MXN — Mexican Peso
+              </option>
+
+              <option value="USD">
+                USD — US Dollar
+              </option>
+
+              <option value="COP">
+                COP — Colombian Peso
+              </option>
+
+            </select>
+
+
+            <button
+              type="button"
+              class="continue-button"
+              (click)="submitCurrency()"
+            >
+              Continue
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          <div class="quick-answers">
+
+            <span class="quick-label">
+              QUICK SELECT
+            </span>
+
+            <div class="quick-options">
+
+              <button
+                type="button"
+                *ngFor="let option of currencySuggestions"
+                (click)="chooseCurrency(option)"
+              >
+                {{ option }}
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="message-row user message-enter"
+          *ngIf="
+            operation.currency &&
+            step !== 'currency'
+          "
+        >
+
+          <div class="message user-message">
+
+            <span class="speaker">
+              YOU
+            </span>
+
+            <p>
+              {{ operation.currency }}
+            </p>
+
+          </div>
+
+        </div>
+
+      </ng-container>
+
+
+      <!-- =========================================
+           DATE
+      ========================================== -->
+
+      <ng-container
+        *ngIf="
+          step === 'date' ||
+          step === 'review' ||
+          step === 'created'
+        "
+      >
+
+        <div
+          class="message-row bot message-enter"
+          *ngIf="!isTyping"
+        >
+
+          <div class="avatar">
+            V
+          </div>
+
+          <div class="message">
+
+            <span class="speaker">
+              VOLTA
+            </span>
+
+            <p>
+              Finally, what is your
+              target pickup date?
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="answer-box"
+          *ngIf="
+            step === 'date' &&
+            !isTyping
+          "
+        >
+
+          <div class="input-row">
+
+            <input
+              type="date"
+              [(ngModel)]="
+                operation.mandate_target_date
+              "
+            />
+
+            <button
+              type="button"
+              class="continue-button"
+              (click)="submitDate()"
+            >
+              Review
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          <div class="quick-answers">
+
+            <span class="quick-label">
+              QUICK SELECT
+            </span>
+
+            <div class="quick-options">
+
+              <button
+                type="button"
+                (click)="chooseDateOffset(1)"
+              >
+                Tomorrow
+              </button>
+
+              <button
+                type="button"
+                (click)="chooseDateOffset(3)"
+              >
+                In 3 days
+              </button>
+
+              <button
+                type="button"
+                (click)="chooseDateOffset(7)"
+              >
+                In 1 week
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="message-row user message-enter"
+          *ngIf="
+            operation.mandate_target_date &&
+            step !== 'date'
+          "
+        >
+
+          <div class="message user-message">
+
+            <span class="speaker">
+              YOU
+            </span>
+
+            <p>
+              {{ operation.mandate_target_date }}
+            </p>
+
+          </div>
+
+        </div>
+
+      </ng-container>
+
+
+      <!-- =========================================
+           TYPING INDICATOR
+      ========================================== -->
+
+      <div
+        class="message-row bot typing-row"
+        *ngIf="isTyping"
+      >
+
+        <div class="avatar">
+          V
+        </div>
+
+        <div class="message typing-message">
+
+          <span class="speaker">
+            VOLTA
+          </span>
+
+          <div class="typing-content">
+
+            <span class="typing-label">
+              Volta is typing
+            </span>
+
+            <div class="typing-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ERROR -->
+
+      <div
+        class="error-message"
+        *ngIf="errorMessage"
+      >
+        {{ errorMessage }}
+      </div>
+
+
+      <!-- =========================================
+           REVIEW
+      ========================================== -->
+
+      <section
+        class="mandate-card message-enter"
+        *ngIf="
+          step === 'review' &&
+          !isTyping
+        "
+      >
+
+        <div class="mandate-title">
+
+          <div>
+
+            <span>
+              MANDATE READY
+            </span>
+
+            <h2>
+              Freight Negotiation Mandate
+            </h2>
+
+            <p>
+              Review the instructions before
+              creating the operation.
+            </p>
+
+          </div>
+
+          <span class="pending-badge">
+            PENDING
+          </span>
+
+        </div>
+
+
+        <div class="route-summary">
+
+          <div class="route-location">
+
+            <span>
+              ORIGIN
+            </span>
+
+            <strong>
+              {{ operation.origin }}
+            </strong>
+
+          </div>
+
+
+          <div class="route-line">
+
+            <span></span>
+
+            <div>
+              →
+            </div>
+
+            <span></span>
+
+          </div>
+
+
+          <div class="route-location">
+
+            <span>
+              DESTINATION
+            </span>
+
+            <strong>
+              {{ operation.destination }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="mandate-grid">
+
+          <div>
+
+            <span>
+              CLIENT
+            </span>
+
+            <strong>
+              {{ selectedClient?.name || '—' }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              PRICE CAP
+            </span>
+
+            <strong class="money">
+              {{
+                formatMoney(
+                  operation.mandate_max_price
+                )
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              CURRENCY
+            </span>
+
+            <strong>
+              {{ operation.currency }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              TARGET DATE
+            </span>
+
+            <strong>
+              {{ operation.mandate_target_date }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="mandate-notice">
+
+          <span>
+            ⚡
+          </span>
+
+          <p>
+            Volta will use this mandate as
+            the negotiation boundary for the
+            operation.
+          </p>
+
+        </div>
+
+
+        <div class="mandate-actions">
+
+          <button
+            type="button"
+            class="edit-button"
+            (click)="editMandate()"
+          >
+            ← Edit Mandate
+          </button>
+
+          <button
+            type="button"
+            class="deploy-button"
+            [disabled]="creatingOperation"
+            (click)="createOperation()"
+          >
+
+            <span
+              *ngIf="!creatingOperation"
+            >
+              Confirm & Create Operation
+            </span>
+
+            <span
+              *ngIf="creatingOperation"
+            >
+              Creating Operation...
+            </span>
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- =========================================
+           CREATED
+      ========================================== -->
+
+      <section
+        class="created-card message-enter"
+        *ngIf="
+          step === 'created' &&
+          createdOperation
+        "
+      >
+
+        <div class="success-icon">
+          ✓
+        </div>
+
+        <span class="success-label">
+          OPERATION CREATED
+        </span>
+
+        <h2>
+          Mandate successfully registered
+        </h2>
+
+        <p>
+          This operation is now registered
+          in Nauti and ready to continue into
+          the agent negotiation workflow.
+        </p>
+
+
+        <div class="operation-id">
+
+          <span>
+            OPERATION ID
+          </span>
+
+          <strong>
+            {{ createdOperation.id }}
+          </strong>
+
+        </div>
+
+
+        <div class="created-summary">
+
+          <div>
+            <span>ROUTE</span>
+            <strong>
+              {{ createdOperation.origin }}
+              →
+              {{ createdOperation.destination }}
+            </strong>
+          </div>
+
+          <div>
+            <span>PRICE CAP</span>
+            <strong class="money">
+              {{
+                formatMoney(
+                  createdOperation.mandate_max_price
+                )
+              }}
+            </strong>
+          </div>
+
+          <div>
+            <span>STATUS</span>
+            <strong class="status-value">
+              {{ createdOperation.status }}
+            </strong>
+          </div>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="new-operation-button"
+          (click)="resetConversation()"
+        >
+          + Create Another Operation
+        </button>
+
+      </section>
+
+    </div>
+
+  </section>
+
+</div>

@@ -1,66 +1,182 @@
-export type NegotiationStyle = 'aggressive' | 'balanced' | 'flexible';
+export type NegotiationStyle =
+  | 'aggressive'
+  | 'balanced'
+  | 'flexible'
+  | 'conservative'
+  | string;
 
-export type OperationStatus = 'pending' | 'quoting' | 'committed' | 'delayed' | 'escalated';
+
+export type OutboundCallStatus =
+  | 'pending'
+  | 'queued'
+  | 'registered'
+  | 'ringing'
+  | 'calling'
+  | 'ongoing'
+  | 'in_progress'
+  | 'talking'
+  | 'completed'
+  | 'ended'
+  | 'failed'
+  | 'error'
+  | 'not_connected'
+  | 'no_answer'
+  | 'busy'
+  | string;
+
 
 export interface Operation {
   id: string;
+
   client_id: string;
+
   origin: string;
+
   destination: string;
+
   mandate_max_price: number;
-  currency: string;
+
+  currency?: string;
+
   mandate_target_date: string;
-  status: OperationStatus;
-  carrier_ids: string[];
-  initial_hook: string;
-  negotiation_style: NegotiationStyle;
-  created_at: string;
+
+  status?: string;
+
+  carrier_ids?: string[];
+
+  initial_hook?: string;
+
+  negotiation_style?: NegotiationStyle;
 }
+
 
 export interface CreateOperationRequest {
+  id?: string;
+
   client_id: string;
+
   origin: string;
+
   destination: string;
+
   mandate_max_price: number;
+
   currency?: string;
+
   mandate_target_date: string;
-  status?: OperationStatus;
-  carrier_ids: string[];
-  initial_hook: string;
-  negotiation_style: NegotiationStyle;
+
+  status?: string;
+
+  carrier_ids?: string[];
+
+  initial_hook?: string;
+
+  negotiation_style?: NegotiationStyle;
 }
 
-export interface CallOutboundClient {
-  id: string;
-  name: string;
-  contact_name: string;
-  contact_phone: string;
-  contact_email: string;
+
+export interface OutboundCall {
+  id?: string;
+
+  call_id?: string;
+
+  operation_id?: string;
+
+  client_id?: string;
+
+  carrier_id?: string;
+
+  status?: OutboundCallStatus;
+
+  call_status?: string;
+
+  phone?: string;
+
+  to_number?: string;
+
+  contact_phone?: string;
+
+  url?: string;
+
+  summary?: string;
+
+  duration?: number;
+
+  audio_timestamp?: number;
 }
+
+
+export interface OutboundCallClient {
+  id?: string;
+
+  client_id?: string;
+
+  name?: string;
+
+  contact_name?: string;
+
+  contact_phone?: string;
+
+  phone?: string;
+}
+
 
 export interface CallOutboundRequest {
-  operation_ids: string[];
-  origin: string;
-  destination: string;
-  negotiation_style: NegotiationStyle;
-  initial_hook: string;
-  clients: CallOutboundClient[];
-  carriers: string[];
+  operation_id?: string;
+
+  operation_ids?: string[];
+
+  carrier_id?: string;
+
+  carrier_ids?: string[];
+
+  client_id?: string;
+
+  origin?: string;
+
+  destination?: string;
+
+  phone?: string;
+
+  contact_phone?: string;
+
+  initial_hook?: string;
+
+  negotiation_style?: NegotiationStyle;
+
+  clients?: OutboundCallClient[];
+
+  carriers?: string[];
 }
+
 
 export interface CallOutboundResponse {
-  success: boolean;
-  calls_started: number;
-  message: string;
-  calls: OutboundCallStatus[];
+  operation_id?: string;
+
+  operation_ids?: string[];
+
+  carrier_id?: string;
+
+  call_id?: string;
+
+  status?: OutboundCallStatus;
+
+  message?: string;
+
+  calls?: OutboundCall[];
 }
 
-export interface OutboundCallStatus {
-  call_id: string;
-  call_status: string;
-  contact_name: string;
-  contact_phone: string;
-  to_number: string;
-  from_number: string;
-  client_id: string;
+
+export function emptyCreateOperationRequest():
+  CreateOperationRequest {
+
+  return {
+    client_id: '',
+    origin: '',
+    destination: '',
+    mandate_max_price: 0,
+    currency: 'MXN',
+    mandate_target_date: '',
+    status: 'pending'
+  };
 }
