@@ -38,10 +38,20 @@
     <a
       routerLink="/client"
       routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+      [routerLinkActiveOptions]="{ exact: true }"
       class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
     >
       <svg [lucideIcon]="icons.client" class="size-4"></svg>
       Clients
+    </a>
+
+    <a
+      routerLink="/quote-history"
+      routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+      class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+    >
+      <svg [lucideIcon]="icons.history" class="size-4"></svg>
+      Quote History
     </a>
   </nav>
 

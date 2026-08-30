@@ -1,0 +1,323 @@
+<div class="quote-page">
+
+  <header class="quote-header">
+
+    <div>
+
+      <span class="eyebrow">
+        NEGOTIATION DATA
+      </span>
+
+      <h1>
+        Quote History
+      </h1>
+
+      <p>
+        Historical carrier quotes captured
+        by the autonomous negotiation agent.
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      (click)="loadQuotes()"
+      [disabled]="loading"
+    >
+      {{ loading ? 'Refreshing...' : 'Refresh' }}
+    </button>
+
+  </header>
+
+
+  <section class="filter-panel">
+
+    <div>
+
+      <span class="filter-label">
+        CLIENT ID
+      </span>
+
+      <input
+        type="text"
+        [(ngModel)]="clientIdFilter"
+        placeholder="Filter by client ID"
+        (keyup.enter)="applyFilter()"
+      />
+
+    </div>
+
+    <button
+      type="button"
+      class="filter-button"
+      (click)="applyFilter()"
+      [disabled]="loading"
+    >
+      Apply Filter
+    </button>
+
+    <button
+      type="button"
+      class="clear-button"
+      (click)="clearFilter()"
+      [disabled]="loading"
+    >
+      Clear
+    </button>
+
+  </section>
+
+
+  <section class="summary-row">
+
+    <article class="summary-card">
+
+      <span>
+        TOTAL QUOTES
+      </span>
+
+      <strong>
+        {{ loading ? '—' : quotes.length }}
+      </strong>
+
+      <small>
+        Historical negotiations
+      </small>
+
+    </article>
+
+  </section>
+
+
+  <section class="history-panel">
+
+    <div class="panel-header">
+
+      <div>
+
+        <span class="eyebrow">
+          QUOTE DATABASE
+        </span>
+
+        <h2>
+          Negotiation History
+        </h2>
+
+      </div>
+
+      <span class="api-badge">
+        LIVE API
+      </span>
+
+    </div>
+
+
+    <div
+      class="state-message"
+      *ngIf="loading"
+    >
+      Loading quote history...
+    </div>
+
+
+    <div
+      class="error-message"
+      *ngIf="
+        errorMessage &&
+        !loading
+      "
+    >
+      {{ errorMessage }}
+    </div>
+
+
+    <div
+      class="quote-table-wrapper"
+      *ngIf="
+        !loading &&
+        !errorMessage &&
+        quotes.length > 0
+      "
+    >
+
+      <div class="quote-table">
+
+        <div class="quote-row table-header">
+
+          <span>
+            DATE
+          </span>
+
+          <span>
+            OPERATION
+          </span>
+
+          <span>
+            CARRIER
+          </span>
+
+          <span>
+            INITIAL
+          </span>
+
+          <span>
+            QUOTED PRICE
+          </span>
+
+          <span>
+            PICKUP
+          </span>
+
+          <span>
+            MANDATE
+          </span>
+
+        </div>
+
+
+        <div
+          class="quote-record"
+          *ngFor="let quote of quotes"
+        >
+
+          <div class="quote-row">
+
+            <div class="date-cell">
+
+              <strong>
+                {{
+                  formatDate(
+                    quote.created_at
+                  )
+                }}
+              </strong>
+
+              <small>
+                {{
+                  quote.quoted_date
+                  || 'Recorded quote'
+                }}
+              </small>
+
+            </div>
+
+
+            <span
+              class="mono-cell"
+              [title]="quote.operation_id"
+            >
+              {{
+                shortId(
+                  quote.operation_id
+                )
+              }}
+            </span>
+
+
+            <span
+              class="mono-cell"
+              [title]="quote.carrier_id"
+            >
+              {{
+                shortId(
+                  quote.carrier_id
+                )
+              }}
+            </span>
+
+
+            <span class="initial-price">
+              {{
+                formatMoney(
+                  quote.initial_price,
+                  quote.currency
+                )
+              }}
+            </span>
+
+
+            <strong class="quoted-price">
+              {{
+                formatMoney(
+                  quote.quoted_price,
+                  quote.currency
+                )
+              }}
+            </strong>
+
+
+            <span>
+              {{
+                pickupLabel(
+                  quote
+                )
+              }}
+            </span>
+
+
+            <span
+              class="status"
+              [class.valid]="quote.valid"
+              [class.invalid]="!quote.valid"
+            >
+              {{
+                statusLabel(
+                  quote
+                )
+              }}
+            </span>
+
+          </div>
+
+
+          <div
+            class="call-brief"
+            *ngIf="quote.call_brief"
+          >
+
+            <span>
+              CALL BRIEF
+            </span>
+
+            <p>
+              {{ quote.call_brief }}
+            </p>
+
+            <small>
+              Quote ID:
+              {{ quote.id }}
+            </small>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="empty-state"
+      *ngIf="
+        !loading &&
+        !errorMessage &&
+        quotes.length === 0
+      "
+    >
+
+      <strong>
+        No quotes found
+      </strong>
+
+      <p>
+        Quotes will appear here when the
+        agent records carrier negotiations.
+      </p>
+
+    </div>
+
+  </section>
+
+</div>

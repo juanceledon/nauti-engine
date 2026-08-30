@@ -1,11 +1,11 @@
 export interface Call {
   id: string;
-  duration: number;
-  audio_timestamp: number;
+  duration: number | null;
+  audio_timestamp: number | null;
   call_id: string;
-  url: string;
-  agent_id: string;
-  summary: string;
+  url: string | null;
+  agent_id: string | null;
+  summary: string | null;
   status?: string;
   from_number?: string;
   to_number?: string;
@@ -14,5 +14,5 @@ export interface Call {
   client_id?: string;
   direction?: string;
   call_type?: string;
-  created_at: string;
+  created_at?: string;
 }
