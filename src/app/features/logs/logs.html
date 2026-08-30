@@ -1,304 +1,94 @@
-<div class="logs-page">
-
-  <!-- HEADER -->
-
-  <header class="logs-header">
-
+<section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+  <header class="flex flex-wrap items-center justify-between gap-4 px-6 py-6 lg:px-8">
     <div>
-
-      <span class="eyebrow">
-        AGENT AUDIT TRAIL
-      </span>
-
-      <h1>
-        Call Logs
-      </h1>
-
-      <p>
-        Review autonomous agent calls,
-        negotiation summaries and audio evidence.
-      </p>
-
+      <p class="nauti-label">Agent audit trail</p>
+      <h1 class="mt-1 font-display text-[32px] font-semibold tracking-[-0.02em] text-ink">Call logs</h1>
+      <p class="mt-1 text-sm text-muted">Autonomous agent calls, summaries and audio evidence.</p>
     </div>
-
-
-    <div class="header-actions">
-
-      <input
-        type="text"
-        [(ngModel)]="searchTerm"
-        placeholder="Search calls..."
-      />
-
-
+    <div class="flex flex-wrap items-center gap-3">
+      <label class="nauti-input flex items-center gap-2 px-3 py-2">
+        <svg [lucideIcon]="icons.search" class="size-4 text-muted"></svg>
+        <input
+          type="search"
+          class="w-56 bg-transparent text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+          placeholder="Search calls..."
+          [value]="query()"
+          (input)="onSearch($event)"
+        />
+      </label>
       <button
         type="button"
+        class="rounded bg-ink px-3 py-2 text-sm font-medium text-canvas disabled:opacity-50"
         (click)="loadCalls()"
-        [disabled]="loading"
+        [disabled]="loading()"
       >
-        {{
-          loading
-            ? 'Refreshing...'
-            : 'Refresh'
-        }}
+        {{ loading() ? 'Refreshing…' : 'Refresh' }}
       </button>
-
     </div>
-
   </header>
 
-
-  <!-- SUMMARY -->
-
-  <section class="log-kpis">
-
-    <article>
-
-      <span>
-        TOTAL CALLS
-      </span>
-
-      <strong>
-        {{ calls.length }}
-      </strong>
-
-      <small>
-        Recorded agent interactions
-      </small>
-
+  <div class="grid grid-cols-2 gap-4 px-6 lg:px-8">
+    <article class="nauti-card p-4">
+      <p class="nauti-label">Total calls</p>
+      <p class="mt-2 font-display text-2xl font-semibold">{{ loading() ? '—' : calls().length }}</p>
     </article>
-
-
-    <article>
-
-      <span>
-        STATUS
-      </span>
-
-      <strong class="live-value">
-        LIVE
-      </strong>
-
-      <small>
-        Connected to Nauti API
-      </small>
-
+    <article class="nauti-card p-4">
+      <p class="nauti-label">Source</p>
+      <p class="mt-2 text-sm font-medium text-neon">Live API</p>
     </article>
-
-  </section>
-
-
-  <!-- ERROR -->
-
-  <div
-    class="error-message"
-    *ngIf="errorMessage"
-  >
-    {{ errorMessage }}
   </div>
 
-
-  <!-- CALL HISTORY -->
-
-  <section class="logs-panel">
-
-    <div class="panel-heading">
-
-      <div>
-
-        <span>
-          CALL HISTORY
-        </span>
-
-        <h2>
-          Agent Calls
-        </h2>
-
-        <p>
-          Auditable history of calls performed
-          by autonomous agents.
-        </p>
-
-      </div>
-
-
-      <span class="live-badge">
-        LIVE API
-      </span>
-
-    </div>
-
-
-    <!-- LOADING -->
-
-    <div
-      class="loading-state"
-      *ngIf="loading"
-    >
-      Loading call logs...
-    </div>
-
-
-    <!-- TABLE -->
-
-    <div
-      class="logs-table"
-      *ngIf="!loading"
-    >
-
-      <div class="log-row table-heading">
-
-        <span>
-          CALL
-        </span>
-
-        <span>
-          AGENT
-        </span>
-
-        <span>
-          DURATION
-        </span>
-
-        <span>
-          SUMMARY
-        </span>
-
-        <span>
-          AUDIO MARK
-        </span>
-
-        <span>
-          EVIDENCE
-        </span>
-
-      </div>
-
-
-      <div
-        class="log-row"
-        *ngFor="let call of filteredCalls"
-      >
-
-        <!-- CALL -->
-
-        <div class="call-identity">
-
-          <span class="call-icon">
-            ☎
-          </span>
-
-
-          <div>
-
-            <strong>
-              {{
-                call.call_id ||
-                call.id
-              }}
-            </strong>
-
-            <small>
-              {{ call.id }}
-            </small>
-
-          </div>
-
-        </div>
-
-
-        <!-- AGENT -->
-
-        <span>
-          {{ call.agent_id || '—' }}
-        </span>
-
-
-        <!-- DURATION -->
-
-        <span>
-          {{
-            formatDuration(
-              call.duration
-            )
-          }}
-        </span>
-
-
-        <!-- SUMMARY -->
-
-        <span
-          class="summary"
-          [title]="call.summary || ''"
-        >
-          {{
-            call.summary ||
-            'No summary available'
-          }}
-        </span>
-
-
-        <!-- AUDIO TIMESTAMP -->
-
-        <span class="timestamp">
-
-          {{
-            formatTimestamp(
-              call.audio_timestamp
-            )
-          }}
-
-        </span>
-
-
-        <!-- RECORDING -->
-
-        <div>
-
-          <button
-            type="button"
-            class="recording-button"
-            *ngIf="call.url"
-            (click)="openRecording(call)"
-          >
-            ▶ Recording
-          </button>
-
-
-          <span
-            class="no-recording"
-            *ngIf="!call.url"
-          >
-            —
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <!-- EMPTY STATE -->
-
-      <div
-        class="empty-state"
-        *ngIf="
-          filteredCalls.length === 0
-        "
-      >
-
-        <strong>
-          No calls found
-        </strong>
-
-        <span>
-          Agent calls will appear here once
-          they are recorded by the backend.
-        </span>
-
-      </div>
-
-    </div>
-
-  </section>
-
-</div>
+  <div class="min-h-0 flex-1 overflow-auto px-6 py-6 lg:px-8">
+    <article class="nauti-card overflow-hidden">
+      <table class="w-full text-left">
+        <thead class="bg-panel">
+          <tr class="nauti-label border-b border-line">
+            <th class="px-4 py-2 font-medium">Call</th>
+            <th class="px-4 py-2 font-medium">Agent</th>
+            <th class="px-4 py-2 font-medium">Duration</th>
+            <th class="px-4 py-2 font-medium">Summary</th>
+            <th class="px-4 py-2 font-medium">Audio mark</th>
+            <th class="px-4 py-2 font-medium">Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loadError()) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-danger" colspan="6">{{ loadError() }}</td>
+            </tr>
+          } @else if (loading()) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-muted" colspan="6">Loading call logs…</td>
+            </tr>
+          } @else if (visible().length === 0) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-muted" colspan="6">No calls found.</td>
+            </tr>
+          } @else {
+            @for (call of visible(); track call.id) {
+              <tr class="border-b border-line/60">
+                <td class="px-4 py-3">
+                  <p class="font-mono text-xs">{{ call.call_id || call.id }}</p>
+                  <p class="font-mono text-[11px] text-muted">{{ call.created_at ? (call.created_at | date: 'medium') : call.id }}</p>
+                </td>
+                <td class="px-4 py-3 font-mono text-xs text-muted">{{ call.agent_id || '—' }}</td>
+                <td class="px-4 py-3 font-mono text-sm">{{ durationLabel(call.duration) }}</td>
+                <td class="px-4 py-3 text-sm">{{ call.summary || 'No summary available' }}</td>
+                <td class="px-4 py-3 font-mono text-sm">{{ markLabel(call.audio_timestamp) }}</td>
+                <td class="px-4 py-3 text-sm">
+                  @if (call.url) {
+                    <a class="text-neon hover:underline" [href]="call.url" target="_blank" rel="noreferrer">
+                      Recording
+                    </a>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </article>
+  </div>
+</section>

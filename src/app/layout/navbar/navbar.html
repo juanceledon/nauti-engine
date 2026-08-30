@@ -1,78 +1,107 @@
-<aside class="flex h-screen w-60 shrink-0 flex-col border-r border-line bg-panel">
-  <div class="flex flex-col gap-2 px-5 py-6">
-    <img src="nauti-logo.png" alt="Nauti" class="h-9 w-auto max-w-full" />
+<aside
+  class="flex h-screen shrink-0 flex-col border-r border-line bg-panel"
+  [class.w-60]="variant() === 'admin'"
+  [class.w-72]="variant() === 'client'"
+>
+  <div class="flex items-center gap-3 px-5 py-6">
+    <img src="nauti-logo.png" alt="Nauti" class="h-9 w-auto max-w-full shrink-0 object-contain" />
     <p class="flex items-center gap-1.5 font-mono text-[11px] tracking-wide text-muted">
       <span class="size-1.5 animate-pulse rounded-full bg-neon"></span>
-      System Active
+      @if (variant() === 'admin') {
+        Super admin
+      } @else {
+        Client portal
+      }
     </p>
   </div>
 
-  <nav class="flex flex-1 flex-col gap-1 px-3">
-    <a
-      routerLink="/command"
-      routerLinkActive="border-neon/40 bg-neon/10 text-neon"
-      class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
-    >
-      <svg [lucideIcon]="icons.command" class="size-4"></svg>
-      Command
-    </a>
+  <nav class="flex min-h-0 flex-1 flex-col gap-1 px-3">
+    @if (variant() === 'admin') {
+      <a
+        routerLink="/command"
+        routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+        class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+      >
+        <svg [lucideIcon]="icons.command" class="size-4"></svg>
+        Chat
+      </a>
 
-    <a
-      routerLink="/negotiations"
-      routerLinkActive="border-neon/40 bg-neon/10 text-neon"
-      class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
-    >
-      <svg [lucideIcon]="icons.negotiations" class="size-4 shrink-0"></svg>
-      <span class="leading-tight">Negotiations</span>
-    </a>
+      <a
+        routerLink="/negotiations"
+        routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+        class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+      >
+        <svg [lucideIcon]="icons.negotiations" class="size-4 shrink-0"></svg>
+        <span class="leading-tight">Negotiations</span>
+      </a>
 
-    <a
-      routerLink="/carriers"
-      routerLinkActive="border-neon/40 bg-neon/10 text-neon"
-      class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
-    >
-      <svg [lucideIcon]="icons.truck" class="size-4"></svg>
-      Carriers
-    </a>
+      <a
+        routerLink="/carriers"
+        routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+        class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+      >
+        <svg [lucideIcon]="icons.truck" class="size-4"></svg>
+        Carriers
+      </a>
 
-    <a
-      routerLink="/client"
-      routerLinkActive="border-neon/40 bg-neon/10 text-neon"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
-    >
-      <svg [lucideIcon]="icons.client" class="size-4"></svg>
-      Clients
-    </a>
+      <a
+        routerLink="/client"
+        routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+      >
+        <svg [lucideIcon]="icons.client" class="size-4"></svg>
+        Clients
+      </a>
 
-    <a
-      routerLink="/quote-history"
-      routerLinkActive="border-neon/40 bg-neon/10 text-neon"
-      class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
-    >
-      <svg [lucideIcon]="icons.history" class="size-4"></svg>
-      Quote History
-    </a>
+      <a
+        routerLink="/quote-history"
+        routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+        class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+      >
+        <svg [lucideIcon]="icons.history" class="size-4"></svg>
+        Quote History
+      </a>
+
+      <a
+        routerLink="/logs"
+        routerLinkActive="border-neon/40 bg-neon/10 text-neon"
+        class="flex items-center gap-3 rounded border border-transparent px-3 py-2.5 text-sm text-muted hover:border-line hover:text-ink"
+      >
+        <svg [lucideIcon]="icons.logs" class="size-4"></svg>
+        Logs
+      </a>
+    } @else {
+      <app-conversation-list class="flex min-h-0 flex-1 flex-col" />
+    }
   </nav>
 
   <div class="space-y-1 px-3 pb-6">
-    <a
-      routerLink="/deploy"
-      routerLinkActive="ring-1 ring-neon/50"
-      class="flex w-full items-center justify-start gap-3 rounded bg-zinc-100 px-3 py-2.5 text-sm font-medium text-zinc-950"
+    @if (variant() === 'admin') {
+      <a
+        routerLink="/deploy"
+        routerLinkActive="ring-1 ring-neon/50"
+        class="flex w-full items-center justify-start gap-3 rounded bg-ink px-3 py-2.5 text-sm font-medium text-canvas"
+      >
+        <svg [lucideIcon]="icons.rocket" class="size-4"></svg>
+        Deploy Agent
+      </a>
+    }
+
+    <app-theme-toggle />
+
+    <p class="flex items-center gap-3 rounded px-3 py-2 text-sm text-ink">
+      <svg [lucideIcon]="icons.account" class="size-4 shrink-0 text-muted"></svg>
+      <span class="min-w-0 truncate">{{ email() || 'Account' }}</span>
+    </p>
+
+    <button
+      type="button"
+      class="flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm text-muted hover:text-ink"
+      (click)="logout()"
     >
-      <svg [lucideIcon]="icons.rocket" class="size-4"></svg>
-      Deploy Agent
-    </a>
-
-    <a href="#" class="flex items-center gap-3 rounded px-3 py-2 text-sm text-muted hover:text-ink">
-      <svg [lucideIcon]="icons.help" class="size-4"></svg>
-      Support
-    </a>
-
-    <a href="#" class="flex items-center gap-3 rounded px-3 py-2 text-sm text-muted hover:text-ink">
-      <svg [lucideIcon]="icons.account" class="size-4"></svg>
-      Account
-    </a>
+      <svg [lucideIcon]="icons.logout" class="size-4"></svg>
+      Sign out
+    </button>
   </div>
 </aside>

@@ -44,3 +44,30 @@ export function splitPhone(phone: string): { dial: string; number: string } {
 export function joinPhone(dial: string, number: string): string {
   return `${normalizeDial(dial)}${number.replace(/\D/g, '')}`;
 }
+
+const PHONE_COUNTRIES: ReadonlyArray<{ prefix: string; country: string }> = [
+  { prefix: '+593', country: 'Ecuador' },
+  { prefix: '+58', country: 'Venezuela' },
+  { prefix: '+57', country: 'Colombia' },
+  { prefix: '+56', country: 'Chile' },
+  { prefix: '+55', country: 'Brazil' },
+  { prefix: '+54', country: 'Argentina' },
+  { prefix: '+52', country: 'Mexico' },
+  { prefix: '+51', country: 'Peru' },
+  { prefix: '+34', country: 'Spain' },
+  { prefix: '+1', country: 'USA / Canada' },
+];
+
+export function inferPhoneCountry(
+  rawPhone: string | undefined,
+): { country: string; countryCode: string } | null {
+  if (!rawPhone) {
+    return null;
+  }
+  const phone = rawPhone.replace(/[\s()-]/g, '');
+  const match = PHONE_COUNTRIES.find((item) => phone.startsWith(item.prefix));
+  if (!match) {
+    return null;
+  }
+  return { country: match.country, countryCode: match.prefix };
+}

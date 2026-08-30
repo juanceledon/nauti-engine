@@ -7,6 +7,9 @@
       <div>
         <h2 class="font-display font-semibold leading-tight tracking-tight">{{ carrier().name }}</h2>
         <p class="mt-1 font-mono text-[11px] text-muted">ID: {{ carrier().id }}</p>
+        @if (carrier().type) {
+          <p class="mt-1 text-sm text-muted">{{ carrier().type }}</p>
+        }
       </div>
     </div>
     <button type="button" class="rounded p-1 text-muted hover:text-ink" (click)="closed.emit()">
@@ -21,13 +24,15 @@
     >
       Initiate Call
     </a>
-    <button
-      type="button"
-      class="flex flex-1 items-center justify-center rounded border border-line px-3 py-2 text-sm text-muted hover:border-zinc-500 hover:text-ink"
-      (click)="edit.emit()"
-    >
-      Edit Profile
-    </button>
+    @if (!readonly()) {
+      <button
+        type="button"
+        class="flex flex-1 items-center justify-center rounded border border-line px-3 py-2 text-sm text-muted hover:border-zinc-500 hover:text-ink"
+        (click)="edit.emit()"
+      >
+        Edit Profile
+      </button>
+    }
   </div>
 
   <div class="min-h-0 flex-1 overflow-y-auto">

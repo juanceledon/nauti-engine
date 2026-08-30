@@ -2,47 +2,19 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   OnInit,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { AnalyticsKpis, emptyAnalyticsKpis } from '../../core/models/analytics-kpis';
+import { AnalyticsKpis, emptyAnalyticsKpis } from '../../core/models/analytics';
 import { Client as ClientModel } from '../../core/models/client';
-import { AnalyticsService } from '../../core/services/analytics.service';
-import { ClientService } from '../../core/services/client.service';
-
-interface PhoneCountryInfo {
-  country: string;
-  countryCode: string;
-}
-
-const PHONE_PREFIXES: ReadonlyArray<{ prefix: string; country: string }> = [
-  { prefix: '+593', country: 'Ecuador' },
-  { prefix: '+58', country: 'Venezuela' },
-  { prefix: '+57', country: 'Colombia' },
-  { prefix: '+56', country: 'Chile' },
-  { prefix: '+55', country: 'Brazil' },
-  { prefix: '+54', country: 'Argentina' },
-  { prefix: '+52', country: 'Mexico' },
-  { prefix: '+51', country: 'Peru' },
-  { prefix: '+34', country: 'Spain' },
-  { prefix: '+1', country: 'USA / Canada' },
-];
-
-function inferPhoneCountry(rawPhone: string | undefined): PhoneCountryInfo | null {
-  if (!rawPhone) {
-    return null;
-  }
-  const phone = rawPhone.replace(/[\s()-]/g, '');
-  const match = PHONE_PREFIXES.find((item) => phone.startsWith(item.prefix));
-  if (!match) {
-    return null;
-  }
-  return { country: match.country, countryCode: match.prefix };
-}
+import { LogisticsApi } from '../../core/services/logistics.api';
+import { inferPhoneCountry } from '../../core/utils/phone';
 
 function normalizeKpis(kpis: AnalyticsKpis): AnalyticsKpis {
   return {
@@ -66,8 +38,8 @@ function normalizeKpis(kpis: AnalyticsKpis): AnalyticsKpis {
 export class Client implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly clientService = inject(ClientService);
-  private readonly analyticsService = inject(AnalyticsService);
+  private readonly api = inject(LogisticsApi);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly clientId = signal('');
   protected readonly client = signal<ClientModel | null>(null);
@@ -147,9 +119,9 @@ export class Client implements OnInit {
   private loadClient(clientId: string): void {
     this.loadingClient.set(true);
     this.clientError.set('');
-    this.clientService
+    this.api
       .getClient(clientId)
-      .pipe(finalize(() => this.loadingClient.set(false)))
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loadingClient.set(false)))
       .subscribe({
         next: (client) => this.client.set(client),
         error: () => {
@@ -163,9 +135,9 @@ export class Client implements OnInit {
     this.loadingKpis.set(true);
     this.kpiError.set('');
     this.kpis.set(emptyAnalyticsKpis());
-    this.analyticsService
-      .getKpis(clientId)
-      .pipe(finalize(() => this.loadingKpis.set(false)))
+    this.api
+      .getAnalyticsKpis(clientId)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loadingKpis.set(false)))
       .subscribe({
         next: (kpis) => this.kpis.set(normalizeKpis(kpis)),
         error: () => {

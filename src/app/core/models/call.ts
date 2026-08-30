@@ -1,3 +1,5 @@
+import { Client } from './client';
+
 export interface Call {
   id: string;
   duration: number | null;
@@ -12,6 +14,7 @@ export interface Call {
   contact_name?: string;
   contact_phone?: string;
   client_id?: string;
+  client?: Client | null;
   direction?: string;
   call_type?: string;
   created_at?: string;

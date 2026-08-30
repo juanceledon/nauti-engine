@@ -1,218 +1,94 @@
+import { DatePipe } from '@angular/common';
 import {
-  ChangeDetectorRef,
+  ChangeDetectionStrategy,
   Component,
-  OnInit
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { LucideDynamicIcon, LucideSearch } from '@lucide/angular';
 
-import {
-  CommonModule
-} from '@angular/common';
-
-import {
-  FormsModule
-} from '@angular/forms';
-
-import {
-  Call
-} from '../../core/models/call';
-
-import {
-  CallService
-} from '../../core/services/call.service';
-
+import { Call } from '../../core/models/call';
+import { LogisticsApi } from '../../core/services/logistics.api';
+import { formatClock, formatDuration } from '../../core/utils/format';
 
 @Component({
   selector: 'app-logs',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './logs.html',
-  styleUrls: [
-    './logs.css'
-  ]
+  host: { class: 'flex min-h-0 min-w-0 flex-1 overflow-hidden' },
+  imports: [DatePipe, LucideDynamicIcon],
 })
 export class Logs implements OnInit {
+  private readonly api = inject(LogisticsApi);
+  private readonly destroyRef = inject(DestroyRef);
 
-  calls: Call[] = [];
+  protected readonly icons = { search: LucideSearch };
+  protected readonly calls = signal<Call[]>([]);
+  protected readonly query = signal('');
+  protected readonly loading = signal(true);
+  protected readonly loadError = signal<string | null>(null);
 
-  loading = false;
-
-  errorMessage = '';
-
-  searchTerm = '';
-
-
-  constructor(
-    private callService: CallService,
-    private cdr: ChangeDetectorRef
-  ) {}
-
+  protected readonly visible = computed(() => {
+    const needle = this.query().trim().toLowerCase();
+    const rows = this.calls();
+    if (!needle) {
+      return rows;
+    }
+    return rows.filter((call) => {
+      const haystack = [
+        call.id,
+        call.call_id,
+        call.summary ?? '',
+        call.agent_id ?? '',
+        call.contact_name ?? '',
+        call.contact_phone ?? '',
+        call.status ?? '',
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(needle);
+    });
+  });
 
   ngOnInit(): void {
     this.loadCalls();
   }
 
-
-  loadCalls(): void {
-
-    this.loading = true;
-
-    this.errorMessage = '';
-
-    this.cdr.detectChanges();
-
-
-    this.callService
-      .getCalls()
+  protected loadCalls(): void {
+    this.loading.set(true);
+    this.loadError.set(null);
+    this.api
+      .listCalls()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-
-        next: (calls) => {
-
-          console.log(
-            'Calls loaded:',
-            calls
-          );
-
-          this.calls =
-            Array.isArray(calls)
-              ? calls
-              : [];
-
-          this.loading = false;
-
-          this.cdr.detectChanges();
+        next: (rows) => {
+          this.calls.set(Array.isArray(rows) ? rows : []);
+          this.loading.set(false);
         },
-
-        error: (error) => {
-
-          console.error(
-            'Error loading calls:',
-            error
-          );
-
-          this.calls = [];
-
-          this.errorMessage =
-            'Could not load call logs.';
-
-          this.loading = false;
-
-          this.cdr.detectChanges();
-        }
-
+        error: () => {
+          this.calls.set([]);
+          this.loadError.set('Could not load call logs.');
+          this.loading.set(false);
+        },
       });
   }
 
-
-  get filteredCalls(): Call[] {
-
-    const search =
-      this.searchTerm
-        .trim()
-        .toLowerCase();
-
-
-    if (!search) {
-      return this.calls;
+  protected onSearch(event: Event): void {
+    const field = event.target;
+    if (field instanceof HTMLInputElement) {
+      this.query.set(field.value);
     }
-
-
-    return this.calls.filter(
-      call =>
-
-        (call.id ?? '')
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        (call.call_id ?? '')
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        (call.agent_id ?? '')
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        (call.summary ?? '')
-          .toLowerCase()
-          .includes(search)
-
-    );
   }
 
-
-  formatDuration(
-    seconds: number | null
-  ): string {
-
-    if (
-      seconds === null ||
-      seconds === undefined
-    ) {
-      return '—';
-    }
-
-
-    const minutes =
-      Math.floor(seconds / 60);
-
-    const remainingSeconds =
-      Math.round(seconds % 60);
-
-
-    return (
-      `${minutes}m ${remainingSeconds}s`
-    );
+  protected durationLabel(seconds: number | null | undefined): string {
+    return formatDuration(seconds);
   }
 
-
-  formatTimestamp(
-    seconds: number | null
-  ): string {
-
-    if (
-      seconds === null ||
-      seconds === undefined
-    ) {
-      return '—';
-    }
-
-
-    const minutes =
-      Math.floor(seconds / 60);
-
-    const remainingSeconds =
-      Math.round(seconds % 60);
-
-
-    return (
-      `${minutes}:${remainingSeconds
-        .toString()
-        .padStart(2, '0')}`
-    );
+  protected markLabel(seconds: number | null | undefined): string {
+    return formatClock(seconds);
   }
-
-
-  openRecording(
-    call: Call
-  ): void {
-
-    if (!call.url) {
-      return;
-    }
-
-    window.open(
-      call.url,
-      '_blank',
-      'noopener,noreferrer'
-    );
-  }
-
 }

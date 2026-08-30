@@ -21,6 +21,7 @@ import {
 import { Carrier, CarrierWrite, carrierRoutes } from '../../core/models/carrier';
 import { PrimaryRoute } from '../../core/models/primary-route';
 import { Quote } from '../../core/models/quote';
+import { AuthService } from '../../core/auth/auth.service';
 import { CarrierDialog } from '../../core/services/carrier-dialog';
 import { LogisticsApi } from '../../core/services/logistics.api';
 import { carrierInitials } from '../../core/utils/initials';
@@ -35,6 +36,7 @@ import { CarrierDetail } from './carrier-detail';
 })
 export class CarriersDirectory implements OnInit {
   private readonly api = inject(LogisticsApi);
+  private readonly auth = inject(AuthService);
   private readonly dialog = inject(CarrierDialog);
   private readonly destroyRef = inject(DestroyRef);
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -64,6 +66,8 @@ export class CarriersDirectory implements OnInit {
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly filtersOpen = signal(false);
+  protected readonly readonly = this.auth.role() === 'client';
+  protected readonly scopedClientId = this.auth.clientId;
 
   protected readonly selected = computed(
     () => this.carriers().find((carrier) => carrier.id === this.selectedId()) ?? null,
@@ -105,7 +109,7 @@ export class CarriersDirectory implements OnInit {
       next: (rows) => this.routes.set(rows),
       error: () => this.routes.set([]),
     });
-    this.api.listQuotes().subscribe({
+    this.api.listQuotes(this.scopeQuery()).subscribe({
       next: (rows) => this.quotes.set(rows),
       error: () => this.quotes.set([]),
     });
@@ -120,6 +124,7 @@ export class CarriersDirectory implements OnInit {
         route: this.routeFilter(),
         page: this.page(),
         page_size: this.pageSize,
+        ...this.scopeQuery(),
       })
       .subscribe({
         next: (response) => {
@@ -174,13 +179,21 @@ export class CarriersDirectory implements OnInit {
     this.selectedId.set(carrier.id);
   }
 
+  private scopeQuery(): { client_id?: string } {
+    const clientId = this.scopedClientId();
+    return clientId ? { client_id: clientId } : {};
+  }
+
   protected openCreate(): void {
+    if (this.readonly) {
+      return;
+    }
     this.dialog.present(null, (body) => this.saveCarrier(body));
   }
 
   protected openEdit(): void {
     const current = this.selected();
-    if (!current) {
+    if (!current || this.readonly) {
       return;
     }
     this.dialog.present(current, (body) => this.saveCarrier(body));

@@ -52,7 +52,7 @@
         />
       </div>
     </label>
-    <label class="flex flex-col gap-1 sm:col-span-2">
+    <label class="flex flex-col gap-1">
       <span class="nauti-label">Email</span>
       <input
         class="nauti-input px-3 py-2 text-sm"
@@ -60,6 +60,14 @@
         [value]="draft().email"
         (input)="patchField('email', $event)"
         required
+      />
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="nauti-label">Type</span>
+      <input
+        class="nauti-input px-3 py-2 text-sm"
+        [value]="draft().type"
+        (input)="patchField('type', $event)"
       />
     </label>
     <label class="flex flex-col gap-1 sm:col-span-2">

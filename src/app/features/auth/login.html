@@ -1,0 +1,52 @@
+<div class="relative flex min-h-screen items-center justify-center bg-canvas px-4">
+  <div class="absolute right-4 top-4">
+    <app-theme-toggle [compact]="true" />
+  </div>
+  <article class="nauti-card w-full max-w-md p-8">
+    <img src="nauti-logo.png" alt="Nauti" class="h-9 w-auto" />
+    <h1 class="mt-6 font-display text-2xl font-semibold tracking-tight">Sign in</h1>
+    <p class="mt-2 text-sm text-muted">Use your Nauti email to open Chat or the client portal.</p>
+
+    <form class="mt-6 space-y-4" (ngSubmit)="submit()">
+      <label class="block">
+        <span class="nauti-label">Email</span>
+        <input
+          class="nauti-input mt-2 w-full px-3 py-2 text-sm"
+          type="email"
+          name="email"
+          autocomplete="email"
+          required
+          [(ngModel)]="email"
+        />
+      </label>
+      <label class="block">
+        <span class="nauti-label">Password</span>
+        <input
+          class="nauti-input mt-2 w-full px-3 py-2 text-sm"
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          required
+          [(ngModel)]="password"
+        />
+      </label>
+
+      @if (error()) {
+        <p class="text-sm text-danger">{{ error() }}</p>
+      }
+
+      <button
+        type="submit"
+        class="w-full rounded bg-ink py-2.5 text-sm font-medium text-canvas disabled:opacity-50"
+        [disabled]="submitting()"
+      >
+        {{ submitting() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="mt-6 text-sm text-muted">
+      New client?
+      <a routerLink="/signup" class="text-neon hover:underline">Create an account</a>
+    </p>
+  </article>
+</div>

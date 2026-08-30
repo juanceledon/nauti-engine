@@ -1,0 +1,105 @@
+<div class="relative flex min-h-screen items-center justify-center bg-canvas px-4 py-10">
+  <div class="absolute right-4 top-4">
+    <app-theme-toggle [compact]="true" />
+  </div>
+  <article class="nauti-card w-full max-w-md p-8">
+    <img src="nauti-logo.png" alt="Nauti" class="h-9 w-auto" />
+    <h1 class="mt-6 font-display text-2xl font-semibold tracking-tight">Create account</h1>
+    <p class="mt-2 text-sm text-muted">
+      Self-signup activates immediately. If this email is new, we create your client profile.
+    </p>
+
+    <form class="mt-6 space-y-4" (ngSubmit)="submit()">
+      <label class="block">
+        <span class="nauti-label">Company</span>
+        <input
+          class="nauti-input mt-2 w-full px-3 py-2 text-sm"
+          type="text"
+          name="name"
+          autocomplete="organization"
+          required
+          [(ngModel)]="name"
+        />
+      </label>
+      <label class="block">
+        <span class="nauti-label">Contact name</span>
+        <input
+          class="nauti-input mt-2 w-full px-3 py-2 text-sm"
+          type="text"
+          name="contactName"
+          autocomplete="name"
+          [(ngModel)]="contactName"
+        />
+      </label>
+      <label class="block">
+        <span class="nauti-label">Phone</span>
+        <div class="nauti-input mt-2 flex overflow-hidden p-0">
+          <input
+            class="w-14 shrink-0 border-0 bg-transparent px-1.5 py-2 text-center font-mono text-xs outline-none"
+            list="signup-dial-codes"
+            [value]="dialCode()"
+            (input)="onDialInput($event)"
+            placeholder="+52"
+            aria-label="Country code"
+          />
+          <datalist id="signup-dial-codes">
+            @for (option of dialCodes; track option.code) {
+              <option [value]="option.code">{{ option.label }}</option>
+            }
+          </datalist>
+          <span class="w-px shrink-0 bg-zinc-700" aria-hidden="true"></span>
+          <input
+            class="min-w-0 flex-1 border-0 bg-transparent px-3 py-2 font-mono text-sm outline-none"
+            type="tel"
+            inputmode="numeric"
+            name="contactPhone"
+            autocomplete="tel-national"
+            placeholder="3116517545"
+            [value]="localNumber()"
+            (input)="onLocalNumber($event)"
+          />
+        </div>
+      </label>
+      <label class="block">
+        <span class="nauti-label">Email</span>
+        <input
+          class="nauti-input mt-2 w-full px-3 py-2 text-sm"
+          type="email"
+          name="email"
+          autocomplete="email"
+          required
+          [(ngModel)]="email"
+        />
+      </label>
+      <label class="block">
+        <span class="nauti-label">Password</span>
+        <input
+          class="nauti-input mt-2 w-full px-3 py-2 text-sm"
+          type="password"
+          name="password"
+          autocomplete="new-password"
+          required
+          minlength="6"
+          [(ngModel)]="password"
+        />
+      </label>
+
+      @if (error()) {
+        <p class="text-sm text-danger">{{ error() }}</p>
+      }
+
+      <button
+        type="submit"
+        class="w-full rounded bg-ink py-2.5 text-sm font-medium text-canvas disabled:opacity-50"
+        [disabled]="submitting()"
+      >
+        {{ submitting() ? 'Creating account…' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="mt-6 text-sm text-muted">
+      Already have an account?
+      <a routerLink="/login" class="text-neon hover:underline">Sign in</a>
+    </p>
+  </article>
+</div>

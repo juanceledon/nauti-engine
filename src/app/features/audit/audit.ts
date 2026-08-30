@@ -13,6 +13,7 @@ import { forkJoin } from 'rxjs';
 
 import { buildNegotiationRows, negotiationMatchesSearch, NegotiationRow } from '../../core/models/audit';
 import { AnalyticsKpis, emptyAnalyticsKpis } from '../../core/models/analytics';
+import { AuthService } from '../../core/auth/auth.service';
 import { LogisticsApi } from '../../core/services/logistics.api';
 import { AuditKpis } from './audit-kpis';
 import { AuditReceipt } from './audit-receipt';
@@ -27,6 +28,7 @@ import { NegotiationsTable } from './negotiations-table';
 })
 export class Audit implements OnInit {
   private readonly api = inject(LogisticsApi);
+  private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly icons = {
@@ -64,13 +66,18 @@ export class Audit implements OnInit {
   });
 
   ngOnInit(): void {
+    const clientId = this.auth.clientId();
     forkJoin({
-      operations: this.api.listOperations(),
-      quotes: this.api.listQuotes(),
-      commitments: this.api.listCommitments(),
+      operations: this.api.listOperations(clientId || undefined),
+      quotes: this.api.listQuotes(clientId ? { client_id: clientId } : {}),
+      commitments: this.api.listCommitments(clientId ? { client_id: clientId } : {}),
       clients: this.api.listClients(),
-      carriers: this.api.listCarriers({ page: 1, page_size: 100 }),
-      kpis: this.api.getAnalyticsKpis(),
+      carriers: this.api.listCarriers({
+        page: 1,
+        page_size: 100,
+        client_id: clientId || undefined,
+      }),
+      kpis: this.api.getAnalyticsKpis(clientId || undefined),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

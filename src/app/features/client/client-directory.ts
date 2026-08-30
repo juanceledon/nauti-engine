@@ -2,16 +2,18 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   OnInit,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { Client, ClientWrite, emptyClientWrite } from '../../core/models/client';
-import { ClientService } from '../../core/services/client.service';
+import { LogisticsApi } from '../../core/services/logistics.api';
 
 function normalizePhone(phone: string | null | undefined): string {
   return (phone ?? '').replace(/\D/g, '');
@@ -45,8 +47,9 @@ function sameClientIdentity(
   styleUrls: ['./client-directory.css'],
 })
 export class ClientDirectory implements OnInit {
-  private readonly clientService = inject(ClientService);
+  private readonly api = inject(LogisticsApi);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly clients = signal<Client[]>([]);
   protected readonly searchTerm = signal('');
@@ -94,9 +97,9 @@ export class ClientDirectory implements OnInit {
   protected loadClients(): void {
     this.loading.set(true);
     this.errorMessage.set('');
-    this.clientService
-      .getClients()
-      .pipe(finalize(() => this.loading.set(false)))
+    this.api
+      .listClients()
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
       .subscribe({
         next: (clients) => this.clients.set(Array.isArray(clients) ? clients : []),
         error: () => {
@@ -162,9 +165,9 @@ export class ClientDirectory implements OnInit {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    this.clientService
+    this.api
       .createClient(payload)
-      .pipe(finalize(() => this.creating.set(false)))
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.creating.set(false)))
       .subscribe({
         next: (createdClient) => {
           this.clients.update((rows) => [createdClient, ...rows]);

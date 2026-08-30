@@ -1,0 +1,26 @@
+<div class="flex h-full overflow-hidden bg-canvas font-sans text-ink">
+  <app-navbar variant="admin" />
+  <main class="flex min-w-0 flex-1 flex-col overflow-hidden">
+    <router-outlet />
+  </main>
+</div>
+
+@if (dialog.open()) {
+  <div class="absolute inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+    <button
+      type="button"
+      class="absolute inset-0 bg-black/70"
+      aria-label="Close dialog"
+      (click)="dialog.dismiss()"
+    ></button>
+    <div class="relative z-10 w-full max-w-lg">
+      <app-carrier-form
+        [carrier]="dialog.carrier()"
+        [saving]="dialog.saving()"
+        [error]="dialog.error()"
+        (save)="dialog.submit($event)"
+        (cancelled)="dialog.dismiss()"
+      />
+    </div>
+  </div>
+}

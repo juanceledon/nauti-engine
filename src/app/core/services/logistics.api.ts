@@ -2,34 +2,59 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { API_BASE } from '../config';
+import { API_BASE, DAPTA_CALL_AGENTS_KEY, DAPTA_CALL_AGENTS_URL } from '../config';
 import { AnalyticsKpis } from '../models/analytics';
+import { Call } from '../models/call';
+import {
+  CallBatch,
+  DaptaBatchPoll,
+  DaptaDispatchRequest,
+  DaptaDispatchResponse,
+  DispatchCallsRequest,
+} from '../models/call-batch';
 import { Carrier, CarrierListQuery, CarrierListResponse, CarrierWrite } from '../models/carrier';
 import { Client, ClientWrite } from '../models/client';
 import { Commitment, CommitmentListQuery } from '../models/commitment';
-import { CreateOperationRequest, Operation, CallOutboundRequest, CallOutboundResponse } from '../models/operation';
+import {
+  CallOutboundRequest,
+  CallOutboundResponse,
+  CreateOperationRequest,
+  NormalizeMandateValueRequest,
+  NormalizeMandateValueResponse,
+  Operation,
+} from '../models/operation';
 import { PrimaryRoute } from '../models/primary-route';
 import { Quote, QuoteListQuery } from '../models/quote';
+import { AppUser, BootstrapUserRequest } from '../models/user';
+
+function queryParams(values: Record<string, string | number | undefined | null>): Record<string, string> {
+  const params: Record<string, string> = {};
+  for (const [key, value] of Object.entries(values)) {
+    if (value == null) {
+      continue;
+    }
+    const text = String(value).trim();
+    if (text) {
+      params[key] = text;
+    }
+  }
+  return params;
+}
 
 @Injectable({ providedIn: 'root' })
 export class LogisticsApi {
   private readonly http = inject(HttpClient);
 
   listCarriers(query: CarrierListQuery = {}): Observable<CarrierListResponse> {
-    const params: Record<string, string> = {};
-    if (query.q?.trim()) {
-      params['q'] = query.q.trim();
-    }
-    if (query.route?.trim()) {
-      params['route'] = query.route.trim();
-    }
-    if (query.page) {
-      params['page'] = String(query.page);
-    }
-    if (query.page_size) {
-      params['page_size'] = String(query.page_size);
-    }
-    return this.http.get<CarrierListResponse>(`${API_BASE}/carriers`, { params });
+    return this.http.get<CarrierListResponse>(`${API_BASE}/carriers`, {
+      params: queryParams({
+        q: query.q,
+        route: query.route,
+        page: query.page,
+        page_size: query.page_size,
+        client_id: query.client_id,
+      }),
+    });
   }
 
   createCarrier(body: CarrierWrite): Observable<Carrier> {
@@ -42,6 +67,7 @@ export class LogisticsApi {
       owner_name: body.owner_name,
       phone: body.phone,
       email: body.email,
+      type: body.type,
       supported_routes: body.supported_routes,
       info_link: body.info_link,
       agent_summary: body.agent_summary,
@@ -49,32 +75,18 @@ export class LogisticsApi {
   }
 
   listQuotes(query: QuoteListQuery = {}): Observable<Quote[]> {
-    const params: Record<string, string> = {};
-    if (query.q?.trim()) {
-      params['q'] = query.q.trim();
-    }
-    if (query.operation_id?.trim()) {
-      params['operation_id'] = query.operation_id.trim();
-    }
-    if (query.carrier_id?.trim()) {
-      params['carrier_id'] = query.carrier_id.trim();
-    }
-    if (query.call_id?.trim()) {
-      params['call_id'] = query.call_id.trim();
-    }
-    if (query.status?.trim()) {
-      params['status'] = query.status.trim();
-    }
-    if (query.client_id?.trim()) {
-      params['client_id'] = query.client_id.trim();
-    }
-    if (query.client_email?.trim()) {
-      params['client_email'] = query.client_email.trim();
-    }
-    if (query.client_phone?.trim()) {
-      params['client_phone'] = query.client_phone.trim();
-    }
-    return this.http.get<Quote[]>(`${API_BASE}/quotes`, { params });
+    return this.http.get<Quote[]>(`${API_BASE}/quotes`, {
+      params: queryParams({
+        q: query.q,
+        operation_id: query.operation_id,
+        carrier_id: query.carrier_id,
+        call_id: query.call_id,
+        status: query.status,
+        client_id: query.client_id,
+        client_email: query.client_email,
+        client_phone: query.client_phone,
+      }),
+    });
   }
 
   listPrimaryRoutes(): Observable<PrimaryRoute[]> {
@@ -96,6 +108,10 @@ export class LogisticsApi {
     return this.http.get<Client[]>(`${API_BASE}/clients`);
   }
 
+  getClient(clientId: string): Observable<Client> {
+    return this.http.get<Client>(`${API_BASE}/clients/${clientId}`);
+  }
+
   createClient(body: ClientWrite): Observable<Client> {
     return this.http.post<Client>(`${API_BASE}/clients`, body);
   }
@@ -104,48 +120,76 @@ export class LogisticsApi {
     return this.http.post<Operation>(`${API_BASE}/operations`, body);
   }
 
+  normalizeMandateValue(
+    body: NormalizeMandateValueRequest,
+  ): Observable<NormalizeMandateValueResponse> {
+    return this.http.post<NormalizeMandateValueResponse>(`${API_BASE}/operations/normalize`, body);
+  }
+
   callOutbound(body: CallOutboundRequest): Observable<CallOutboundResponse> {
     return this.http.post<CallOutboundResponse>(`${API_BASE}/operations/call-outbound`, body);
   }
 
-  listOperations(): Observable<Operation[]> {
-    return this.http.get<Operation[]>(`${API_BASE}/operations`);
+  dispatchOperationCalls(operationId: string, body: DispatchCallsRequest = {}): Observable<CallBatch> {
+    return this.http.post<CallBatch>(`${API_BASE}/operations/${operationId}/dispatch`, body);
+  }
+
+  startDaptaBatch(body: DaptaDispatchRequest): Observable<DaptaDispatchResponse> {
+    return this.http.post<DaptaDispatchResponse>(DAPTA_CALL_AGENTS_URL, body, {
+      params: { 'x-api-key': DAPTA_CALL_AGENTS_KEY },
+    });
+  }
+
+  pollDaptaBatch(batchId: string): Observable<DaptaBatchPoll> {
+    // Poll through Nauti only. The Dapta start URL is the same path; posting
+    // {batch_id} there from the browser was opening a second call.
+    return this.http.post<DaptaBatchPoll>(`${API_BASE}/dapta/call-batch`, {
+      batch_id: batchId,
+    });
+  }
+
+  listOperations(clientId?: string): Observable<Operation[]> {
+    return this.http.get<Operation[]>(`${API_BASE}/operations`, {
+      params: queryParams({ client_id: clientId }),
+    });
+  }
+
+  getOperation(operationId: string): Observable<Operation> {
+    return this.http.get<Operation>(`${API_BASE}/operations/${operationId}`);
+  }
+
+  listCalls(clientId?: string): Observable<Call[]> {
+    return this.http.get<Call[]>(`${API_BASE}/calls`, {
+      params: queryParams({ client_id: clientId }),
+    });
+  }
+
+  getUser(uid: string): Observable<AppUser> {
+    return this.http.get<AppUser>(`${API_BASE}/users/${uid}`);
+  }
+
+  bootstrapUser(body: BootstrapUserRequest): Observable<AppUser> {
+    return this.http.post<AppUser>(`${API_BASE}/users/bootstrap`, body);
   }
 
   listCommitments(query: CommitmentListQuery = {}): Observable<Commitment[]> {
-    const params: Record<string, string> = {};
-    if (query.q?.trim()) {
-      params['q'] = query.q.trim();
-    }
-    if (query.operation_id?.trim()) {
-      params['operation_id'] = query.operation_id.trim();
-    }
-    if (query.carrier_id?.trim()) {
-      params['carrier_id'] = query.carrier_id.trim();
-    }
-    if (query.call_id?.trim()) {
-      params['call_id'] = query.call_id.trim();
-    }
-    if (query.recap_sent?.trim()) {
-      params['recap_sent'] = query.recap_sent.trim();
-    }
-    if (query.client_id?.trim()) {
-      params['client_id'] = query.client_id.trim();
-    }
-    if (query.client_email?.trim()) {
-      params['client_email'] = query.client_email.trim();
-    }
-    if (query.client_phone?.trim()) {
-      params['client_phone'] = query.client_phone.trim();
-    }
-    return this.http.get<Commitment[]>(`${API_BASE}/commitments`, { params });
+    return this.http.get<Commitment[]>(`${API_BASE}/commitments`, {
+      params: queryParams({
+        q: query.q,
+        operation_id: query.operation_id,
+        carrier_id: query.carrier_id,
+        call_id: query.call_id,
+        recap_sent: query.recap_sent,
+        client_id: query.client_id,
+        client_email: query.client_email,
+        client_phone: query.client_phone,
+      }),
+    });
   }
 
   getAnalyticsKpis(clientId?: string): Observable<AnalyticsKpis> {
-    const params: Record<string, string> = {};
-    if (clientId?.trim()) {
-      params['client_id'] = clientId.trim();
-    }
-    return this.http.get<AnalyticsKpis>(`${API_BASE}/api/analytics/kpis`, { params });
+    return this.http.get<AnalyticsKpis>(`${API_BASE}/api/analytics/kpis`, {
+      params: queryParams({ client_id: clientId }),
+    });
   }
 }

@@ -197,9 +197,6 @@ export class DeployAgent implements OnInit {
             destination: lane.destination,
             mandate_max_price: DEFAULT_MANDATE_BUDGET,
             mandate_target_date: defaultMandateDeadline(),
-            carrier_ids: selected.map((carrier) => carrier.id),
-            initial_hook: draft.hook.trim(),
-            negotiation_style: draft.style,
           })
           .pipe(
             map((operation) => ({ ok: true as const, operation })),

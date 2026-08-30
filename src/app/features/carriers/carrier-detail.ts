@@ -15,6 +15,7 @@ import { carrierInitials } from '../../core/utils/initials';
 export class CarrierDetail {
   readonly carrier = input.required<Carrier>();
   readonly quotes = input<Quote[]>([]);
+  readonly readonly = input(false);
   readonly closed = output<void>();
   readonly edit = output<void>();
 

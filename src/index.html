@@ -2,6 +2,12 @@
 <html lang="en" data-theme="nauti">
   <head>
     <meta charset="utf-8" />
+    <script>
+      document.documentElement.setAttribute(
+        'data-theme',
+        localStorage.getItem('nauti-theme') === 'nauti-dark' ? 'nauti-dark' : 'nauti',
+      );
+    </script>
     <title>Nauti Dispatch</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

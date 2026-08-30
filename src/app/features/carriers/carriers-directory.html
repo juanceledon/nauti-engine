@@ -13,14 +13,16 @@
             (input)="onSearch($event)"
           />
         </label>
-        <button
-          type="button"
-          class="flex items-center gap-2 rounded border border-neon/40 px-3 py-2 text-sm text-neon hover:shadow-[0_0_10px_-2px_rgba(74,222,128,0.35)]"
-          (click)="openCreate()"
-        >
-          <svg [lucideIcon]="icons.plus" class="size-4"></svg>
-          Add New Carrier
-        </button>
+        @if (!readonly) {
+          <button
+            type="button"
+            class="flex items-center gap-2 rounded border border-neon/40 px-3 py-2 text-sm text-neon hover:shadow-[0_0_10px_-2px_rgba(74,222,128,0.35)]"
+            (click)="openCreate()"
+          >
+            <svg [lucideIcon]="icons.plus" class="size-4"></svg>
+            Add New Carrier
+          </button>
+        }
       </div>
     </header>
 
@@ -91,6 +93,7 @@
               <thead>
                 <tr class="nauti-label border-b border-line">
                   <th class="px-4 py-3">Carrier name</th>
+                  <th class="px-4 py-3">Type</th>
                   <th class="px-4 py-3">Owner</th>
                   <th class="px-4 py-3">Phone</th>
                   <th class="px-4 py-3">Email</th>
@@ -119,6 +122,7 @@
                         </div>
                       </div>
                     </td>
+                    <td class="px-4 py-3 text-ink">{{ carrier.type || '—' }}</td>
                     <td class="px-4 py-3 text-ink">{{ carrier.owner_name || '—' }}</td>
                     <td class="px-4 py-3 font-mono text-xs text-muted">{{ carrier.phone || '—' }}</td>
                     <td class="px-4 py-3 text-muted">{{ carrier.email || '—' }}</td>
@@ -187,6 +191,7 @@
     <app-carrier-detail
       [carrier]="carrier"
       [quotes]="selectedQuotes()"
+      [readonly]="readonly"
       (closed)="selectedId.set(null)"
       (edit)="openEdit()"
     />

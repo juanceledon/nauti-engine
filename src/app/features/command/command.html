@@ -1,1132 +1,820 @@
-<div class="command-page">
-
-  <!-- HEADER -->
-  <header class="command-header">
-
-    <div>
-      <span class="eyebrow">
-        COMMAND CENTER
-      </span>
-
-      <h1>
-        Deploy Volta Agent
-      </h1>
-
-      <p>
-        Build a freight negotiation mandate
-        through a guided conversation.
-      </p>
-    </div>
-
-    <div class="agent-status">
-      <span class="status-dot"></span>
-
-      <div>
-        <strong>VOLTA ONLINE</strong>
-        <small>Negotiation Agent</small>
-      </div>
-    </div>
-
+<section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+  <header class="flex flex-wrap items-center justify-between gap-4 px-6 pt-5 lg:px-8">
+    <h1 class="font-display text-[28px] font-semibold tracking-[-0.02em] text-ink lg:text-[32px]">
+      Command Center
+      <span class="text-muted">|</span>
+      Active Deal
+    </h1>
+    <p class="flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1.5">
+      <span class="cmd-pulse size-2 rounded-full bg-neon"></span>
+      <span class="nauti-label !normal-case tracking-wide text-neon">Nauti live</span>
+    </p>
   </header>
 
-
-  <!-- CHAT -->
-  <section class="chat-shell">
-
-    <div class="chat-topbar">
-
-      <div class="chat-agent">
-
-        <div class="avatar avatar-large">
-          V
-        </div>
-
-        <div>
-          <strong>
-            Volta
-          </strong>
-
-          <span>
-            Freight Negotiation Agent
-          </span>
-        </div>
-
+  <div class="grid gap-3 px-6 pt-4 lg:grid-cols-3 lg:px-8">
+    <article class="nauti-card flex items-start justify-between gap-3 p-4">
+      <div>
+        <p class="nauti-label">Active freight deals</p>
+        <p class="mt-2 font-display text-3xl font-semibold tracking-tight text-ink">{{ activeFreightDeals }}</p>
+        <p class="mt-1 text-xs text-muted">Operations in motion</p>
       </div>
-
-      <div class="secure-label">
-        ● SECURE SESSION
+      <span class="flex size-9 items-center justify-center rounded-lg border border-line bg-raised text-neon">
+        <svg [lucideIcon]="icons.trend" class="size-4"></svg>
+      </span>
+    </article>
+    <article class="nauti-card flex items-start justify-between gap-3 p-4">
+      <div>
+        <p class="nauti-label">Commitments secured</p>
+        <p class="mt-2 font-display text-3xl font-semibold tracking-tight text-ink">{{ verifiedDeals }}</p>
+        <p class="mt-1 text-xs text-muted">Booked and auditable</p>
       </div>
-
-    </div>
-
-
-    <div class="chat-window">
-
-
-      <!-- =========================================
-           CLIENT QUESTION
-      ========================================== -->
-
-      <div class="message-row bot">
-
-        <div class="avatar">
-          V
-        </div>
-
-        <div class="message">
-
-          <span class="speaker">
-            VOLTA
-          </span>
-
-          <p>
-            Hi. I'll help you create a new
-            freight negotiation mandate.
-            Which client is this operation for?
-          </p>
-
-        </div>
-
+      <span class="flex size-9 items-center justify-center rounded-lg border border-line bg-raised text-neon">
+        <svg [lucideIcon]="icons.deals" class="size-4"></svg>
+      </span>
+    </article>
+    <article class="nauti-card flex items-center justify-between gap-3 p-4">
+      <div>
+        <p class="nauti-label">Avg. AI efficiency</p>
+        <p class="mt-2 font-display text-3xl font-semibold tracking-tight text-ink">{{ aiEfficiency }}%</p>
+        <p class="mt-1 text-xs text-muted">Resolved without a handoff</p>
       </div>
-
-
-      <!-- CLIENT SELECTOR -->
-
-      <div
-        class="client-selector"
-        *ngIf="step === 'client'"
-      >
-
-        <input
-          type="text"
-          [(ngModel)]="clientSearch"
-          placeholder="Search client by name, contact or email..."
-          autocomplete="off"
+      <svg viewBox="0 0 36 36" class="size-14 shrink-0 -rotate-90" aria-hidden="true">
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" stroke-width="3" class="text-line" />
+        <circle
+          cx="18"
+          cy="18"
+          r="15.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          class="text-neon"
+          stroke-dasharray="97.4"
+          [attr.stroke-dashoffset]="efficiencyDashOffset"
         />
+      </svg>
+    </article>
+  </div>
 
-
-        <div
-          class="client-options"
-          *ngIf="!loadingClients"
-        >
-
-          <button
-            type="button"
-            *ngFor="let client of filteredClients"
-            (click)="selectClient(client)"
+  <article class="nauti-card relative mx-6 mb-6 mt-4 flex min-h-0 flex-1 flex-col overflow-hidden lg:mx-8">
+      <div class="flex flex-wrap gap-2 border-b border-line px-4 py-3 lg:px-5">
+        @for (tag of contextTags; track tag.key) {
+          <span
+            class="rounded-lg border px-2.5 py-1.5"
+            [class.border-neon/40]="tag.value"
+            [class.bg-neon/5]="tag.value"
+            [class.border-line]="!tag.value"
+            [class.opacity-50]="!tag.value"
           >
+            <span class="nauti-label">{{ tag.label }}</span>
+            <span class="ml-1.5 font-mono text-xs text-ink">{{ tag.value || '—' }}</span>
+          </span>
+        }
+      </div>
+    <div #thread class="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 lg:px-6">
+      <ng-template #stepPills>
+        @if (composerChips.length > 0) {
+          <div class="cmd-in flex flex-wrap gap-2 pl-10">
+            @for (chip of composerChips; track chip.label) {
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-full border border-line bg-panel px-3.5 py-1.5 text-sm text-ink transition hover:border-neon/50 hover:bg-neon/10 hover:text-neon"
+                (click)="chip.run()"
+              >
+                @if (chip.mark) {
+                  <span aria-hidden="true">{{ chip.mark }}</span>
+                }
+                {{ chip.label }}
+              </button>
+            }
+          </div>
+        }
+      </ng-template>
 
-            <div class="client-main">
+      @if (loadingDeal) {
+        <div class="flex min-h-[16rem] flex-col items-center justify-center">
+          <div class="flex items-center gap-2 rounded-2xl border border-line bg-raised px-4 py-3">
+            <span class="cmd-dot size-1.5 rounded-full bg-neon"></span>
+            <span class="cmd-dot size-1.5 rounded-full bg-neon [animation-delay:140ms]"></span>
+            <span class="cmd-dot size-1.5 rounded-full bg-neon [animation-delay:280ms]"></span>
+            <span class="text-sm text-muted">Opening that deal…</span>
+          </div>
+        </div>
+      } @else {
+      @if (!openedFromDeal && isClientSession && !selectedClient) {
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="min-w-0 max-w-[min(100%,36rem)]">
+            <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+            <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <p class="text-sm leading-relaxed text-ink">Hi — one moment while I open your workspace.</p>
+            </div>
+          </div>
+        </div>
+      }
 
-              <div class="client-icon">
-                {{ client.name.charAt(0) }}
+      @if (!openedFromDeal && !isClientSession) {
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="min-w-0 max-w-[min(100%,36rem)]">
+            <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+            <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <p class="text-sm leading-relaxed text-ink">Hi. Which company is this commitment for?</p>
+            </div>
+          </div>
+        </div>
+
+        @if (selectedClient) {
+          <div class="cmd-in-user flex justify-end">
+            <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-canvas">
+              <p class="text-sm font-medium">{{ selectedClient.name }}</p>
+            </div>
+          </div>
+        }
+      }
+
+      @if (!openedFromDeal && selectedClient && after('client')) {
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="min-w-0 max-w-[min(100%,36rem)]">
+            <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+            <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <p class="text-sm leading-relaxed text-ink">
+                @if (isClientSession) {
+                  Hi {{ greetingName }} — welcome. I’m Nauti. A few short questions and I’ll build the commitment with you.
+                  What currency are we working in?
+                } @else {
+                  Nice. What currency are we working in?
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+        @if (step === 'currency' && !retryAsk) {
+          <ng-container [ngTemplateOutlet]="stepPills" />
+        }
+      }
+
+      @if (!openedFromDeal && operation.currency && after('currency')) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ operation.currency }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && after('currency')) {
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="min-w-0 max-w-[min(100%,36rem)]">
+            <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+            <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <p class="text-sm leading-relaxed text-ink">Where should we pick up the shipment?</p>
+            </div>
+          </div>
+        </div>
+        @if (step === 'origin' && !retryAsk) {
+          <ng-container [ngTemplateOutlet]="stepPills" />
+        }
+      }
+
+      @if (!openedFromDeal && operation.origin && after('origin')) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ operation.origin }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && after('origin')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">Got it. What’s the destination?</p>
               </div>
+            </div>
+          </div>
+          @if (step === 'destination' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
 
-              <div>
+      @if (!openedFromDeal && operation.destination && after('destination')) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ operation.destination }}
+          </div>
+        </div>
+      }
 
-                <strong>
-                  {{ client.name }}
-                </strong>
-
-                <span>
-                  {{ client.contact_name || 'No contact name' }}
-                </span>
-
+      @if (!openedFromDeal && after('destination')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">What kind of cargo is this?</p>
               </div>
-
             </div>
+          </div>
+          @if (step === 'cargo_category' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
 
-            <div class="client-contact">
+      @if (!openedFromDeal && after('cargo_category') && (operation.cargo_category || isSkipped('cargo_category'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('cargo_category') ? skipReply('cargo_category') : formatCargo(operation.cargo_category) }}
+          </div>
+        </div>
+      }
 
-              <small>
-                {{ client.contact_phone || '—' }}
-              </small>
-
-              <small>
-                {{ client.contact_email || '—' }}
-              </small>
-
+      @if (!openedFromDeal && after('cargo_category')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">Is this hazmat?</p>
+              </div>
             </div>
-
-          </button>
-
-        </div>
-
-
-        <div
-          class="loading-message"
-          *ngIf="loadingClients"
-        >
-          Loading clients...
-        </div>
-
-
-        <div
-          class="client-empty"
-          *ngIf="
-            !loadingClients &&
-            filteredClients.length === 0
-          "
-        >
-          No clients found.
-        </div>
-
-      </div>
-
-
-      <!-- SELECTED CLIENT -->
-
-      <div
-        class="message-row user"
-        *ngIf="selectedClient"
-      >
-
-        <div class="message user-message">
-
-          <span class="speaker">
-            YOU
-          </span>
-
-          <p>
-            {{ selectedClient.name }}
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <!-- =========================================
-           ORIGIN
-      ========================================== -->
-
-      <ng-container
-        *ngIf="
-          step !== 'client' &&
-          selectedClient
-        "
-      >
-
-        <div
-          class="message-row bot message-enter"
-          *ngIf="!isTyping"
-        >
-
-          <div class="avatar">
-            V
           </div>
+          @if (step === 'hazmat' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
 
-          <div class="message">
-
-            <span class="speaker">
-              VOLTA
-            </span>
-
-            <p>
-              Where should we pick up
-              the shipment?
-            </p>
-
+      @if (!openedFromDeal && after('hazmat') && (operation.hazmat !== undefined || isSkipped('hazmat'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('hazmat') ? skipReply('hazmat') : formatYesNo(operation.hazmat) }}
           </div>
-
         </div>
+      }
 
-
-        <div
-          class="answer-box"
-          *ngIf="
-            step === 'origin' &&
-            !isTyping
-          "
-        >
-
-          <div class="input-row">
-
-            <input
-              type="text"
-              [(ngModel)]="operation.origin"
-              placeholder="e.g. Manzanillo"
-              autocomplete="off"
-              (keyup.enter)="submitOrigin()"
-            />
-
-            <button
-              type="button"
-              class="continue-button"
-              (click)="submitOrigin()"
-            >
-              Continue
-              <span>→</span>
-            </button>
-
+      @if (!openedFromDeal && after('hazmat')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">What container size?</p>
+              </div>
+            </div>
           </div>
+          @if (step === 'container_size' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
 
+      @if (!openedFromDeal && after('container_size') && (operation.container_size || isSkipped('container_size'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('container_size') ? skipReply('container_size') : operation.container_size }}
+          </div>
+        </div>
+      }
 
-          <div class="quick-answers">
+      @if (!openedFromDeal && after('container_size')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">{{ containerTypePrompt }}</p>
+              </div>
+            </div>
+          </div>
+          @if (step === 'container_type' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
 
-            <span class="quick-label">
-              QUICK ANSWERS
-            </span>
+      @if (!openedFromDeal && after('container_type') && (operation.container_type || isSkipped('container_type'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('container_type') ? skipReply('container_type') : formatContainerType(operation.container_type) }}
+          </div>
+        </div>
+      }
 
-            <div class="quick-options">
+      @if (!openedFromDeal && after('container_type')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">What’s the cargo weight?</p>
+              </div>
+            </div>
+          </div>
+          @if (step === 'weight' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
 
-              <button
-                type="button"
-                *ngFor="let option of originSuggestions"
-                (click)="chooseOrigin(option)"
-              >
-                {{ option }}
+      @if (!openedFromDeal && after('weight') && (operation.weight_kg || isSkipped('weight'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('weight') ? skipReply('weight') : formatWeight(operation.weight_kg) }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && after('weight')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">Do you need a chassis?</p>
+              </div>
+            </div>
+          </div>
+          @if (step === 'chassis' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
+
+      @if (!openedFromDeal && after('chassis') && (operation.chassis_required !== undefined || isSkipped('chassis'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('chassis') ? skipReply('chassis') : formatYesNo(operation.chassis_required) }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && after('chassis')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">Last one — what’s the target pickup date?</p>
+              </div>
+            </div>
+          </div>
+          @if (step === 'date' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
+
+      @if (!openedFromDeal && operation.mandate_target_date && after('date')) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ formatDate(operation.mandate_target_date) }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && after('date')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">What pickup window works?</p>
+              </div>
+            </div>
+          </div>
+          @if (step === 'pickup_window' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
+
+      @if (!openedFromDeal && after('pickup_window') && (operation.pickup_window || isSkipped('pickup_window'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('pickup_window') ? skipReply('pickup_window') : operation.pickup_window }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && after('pickup_window')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">Any last free day we should track?</p>
+              </div>
+            </div>
+          </div>
+          @if (step === 'last_free_day' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
+
+      @if (!openedFromDeal && after('last_free_day') && (operation.last_free_day !== undefined || isSkipped('last_free_day'))) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ isSkipped('last_free_day') ? skipReply('last_free_day') : formatLastFreeDay(operation.last_free_day) }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && after('last_free_day')) {
+        @if (!isTyping) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">What’s the most you’ll pay for this shipment?</p>
+              </div>
+            </div>
+          </div>
+          @if (step === 'price' && !retryAsk) {
+            <ng-container [ngTemplateOutlet]="stepPills" />
+          }
+        }
+      }
+
+      @if (!openedFromDeal && operation.mandate_max_price && after('price')) {
+          <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ formatMoney(operation.mandate_max_price) }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && retryAsk && rejectedAnswer && !isTyping) {
+        <div class="cmd-in-user flex justify-end">
+          <div class="max-w-[min(100%,28rem)] rounded-2xl rounded-br-md bg-ink px-4 py-3 text-sm text-canvas">
+            {{ rejectedAnswer }}
+          </div>
+        </div>
+      }
+
+      @if (!openedFromDeal && retryAsk && !isTyping && !writingOther) {
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="min-w-0 max-w-[min(100%,36rem)]">
+            <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+            <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <p class="text-sm leading-relaxed text-ink">{{ retryAsk }}</p>
+            </div>
+          </div>
+        </div>
+        <ng-container [ngTemplateOutlet]="stepPills" />
+      }
+
+      @if (!openedFromDeal && writingOther && !isTyping) {
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="min-w-0 max-w-[min(100%,36rem)]">
+            <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+            <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <p class="text-sm leading-relaxed text-ink">{{ otherPrompt }}</p>
+              <button type="button" class="mt-2 text-xs text-muted underline-offset-2 hover:text-ink hover:underline" (click)="cancelOther()">
+                Back to options
               </button>
-
             </div>
-
           </div>
-
         </div>
+      }
 
-
-        <div
-          class="message-row user message-enter"
-          *ngIf="
-            operation.origin &&
-            step !== 'origin'
-          "
-        >
-
-          <div class="message user-message">
-
-            <span class="speaker">
-              YOU
-            </span>
-
-            <p>
-              {{ operation.origin }}
-            </p>
-
+      @if (!openedFromDeal && isTyping) {
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="flex items-center gap-2 rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+            <span class="cmd-dot size-1.5 rounded-full bg-neon"></span>
+            <span class="cmd-dot size-1.5 rounded-full bg-neon [animation-delay:140ms]"></span>
+            <span class="cmd-dot size-1.5 rounded-full bg-neon [animation-delay:280ms]"></span>
+            <span class="text-xs text-muted">Nauti is typing</span>
           </div>
-
         </div>
-
-      </ng-container>
-
-
-      <!-- =========================================
-           DESTINATION
-      ========================================== -->
-
-      <ng-container
-        *ngIf="
-          step === 'destination' ||
-          step === 'price' ||
-          step === 'currency' ||
-          step === 'date' ||
-          step === 'review' ||
-          step === 'created'
-        "
-      >
-
-        <div
-          class="message-row bot message-enter"
-          *ngIf="!isTyping"
-        >
-
-          <div class="avatar">
-            V
-          </div>
-
-          <div class="message">
-
-            <span class="speaker">
-              VOLTA
-            </span>
-
-            <p>
-              Got it. What is the
-              destination?
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="answer-box"
-          *ngIf="
-            step === 'destination' &&
-            !isTyping
-          "
-        >
-
-          <div class="input-row">
-
-            <input
-              type="text"
-              [(ngModel)]="operation.destination"
-              placeholder="e.g. Guadalajara"
-              autocomplete="off"
-              (keyup.enter)="submitDestination()"
-            />
-
-            <button
-              type="button"
-              class="continue-button"
-              (click)="submitDestination()"
-            >
-              Continue
-              <span>→</span>
-            </button>
-
-          </div>
-
-
-          <div class="quick-answers">
-
-            <span class="quick-label">
-              QUICK ANSWERS
-            </span>
-
-            <div class="quick-options">
-
-              <button
-                type="button"
-                *ngFor="let option of destinationSuggestions"
-                (click)="chooseDestination(option)"
-              >
-                {{ option }}
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="message-row user message-enter"
-          *ngIf="
-            operation.destination &&
-            step !== 'destination'
-          "
-        >
-
-          <div class="message user-message">
-
-            <span class="speaker">
-              YOU
-            </span>
-
-            <p>
-              {{ operation.destination }}
-            </p>
-
-          </div>
-
-        </div>
-
-      </ng-container>
-
-
-      <!-- =========================================
-           PRICE
-      ========================================== -->
-
-      <ng-container
-        *ngIf="
-          step === 'price' ||
-          step === 'currency' ||
-          step === 'date' ||
-          step === 'review' ||
-          step === 'created'
-        "
-      >
-
-        <div
-          class="message-row bot message-enter"
-          *ngIf="!isTyping"
-        >
-
-          <div class="avatar">
-            V
-          </div>
-
-          <div class="message">
-
-            <span class="speaker">
-              VOLTA
-            </span>
-
-            <p>
-              What is the maximum price
-              authorized for this shipment?
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="answer-box"
-          *ngIf="
-            step === 'price' &&
-            !isTyping
-          "
-        >
-
-          <div class="input-row">
-
-            <input
-              type="number"
-              min="1"
-              [(ngModel)]="operation.mandate_max_price"
-              placeholder="e.g. 8500"
-              (keyup.enter)="submitPrice()"
-            />
-
-            <button
-              type="button"
-              class="continue-button"
-              (click)="submitPrice()"
-            >
-              Continue
-              <span>→</span>
-            </button>
-
-          </div>
-
-
-          <div class="quick-answers">
-
-            <span class="quick-label">
-              SUGGESTED CAPS
-            </span>
-
-            <div class="quick-options">
-
-              <button
-                type="button"
-                *ngFor="let option of priceSuggestions"
-                (click)="choosePrice(option)"
-              >
-                {{ option | number }}
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="message-row user message-enter"
-          *ngIf="
-            operation.mandate_max_price &&
-            step !== 'price'
-          "
-        >
-
-          <div class="message user-message">
-
-            <span class="speaker">
-              YOU
-            </span>
-
-            <p>
-              {{ operation.mandate_max_price | number }}
-            </p>
-
-          </div>
-
-        </div>
-
-      </ng-container>
-
-
-      <!-- =========================================
-           CURRENCY
-      ========================================== -->
-
-      <ng-container
-        *ngIf="
-          step === 'currency' ||
-          step === 'date' ||
-          step === 'review' ||
-          step === 'created'
-        "
-      >
-
-        <div
-          class="message-row bot message-enter"
-          *ngIf="!isTyping"
-        >
-
-          <div class="avatar">
-            V
-          </div>
-
-          <div class="message">
-
-            <span class="speaker">
-              VOLTA
-            </span>
-
-            <p>
-              Which currency should I use
-              for the negotiation?
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="answer-box"
-          *ngIf="
-            step === 'currency' &&
-            !isTyping
-          "
-        >
-
-          <div class="input-row">
-
-            <select
-              [(ngModel)]="operation.currency"
-            >
-
-              <option value="MXN">
-                MXN — Mexican Peso
-              </option>
-
-              <option value="USD">
-                USD — US Dollar
-              </option>
-
-              <option value="COP">
-                COP — Colombian Peso
-              </option>
-
-            </select>
-
-
-            <button
-              type="button"
-              class="continue-button"
-              (click)="submitCurrency()"
-            >
-              Continue
-              <span>→</span>
-            </button>
-
-          </div>
-
-
-          <div class="quick-answers">
-
-            <span class="quick-label">
-              QUICK SELECT
-            </span>
-
-            <div class="quick-options">
-
-              <button
-                type="button"
-                *ngFor="let option of currencySuggestions"
-                (click)="chooseCurrency(option)"
-              >
-                {{ option }}
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="message-row user message-enter"
-          *ngIf="
-            operation.currency &&
-            step !== 'currency'
-          "
-        >
-
-          <div class="message user-message">
-
-            <span class="speaker">
-              YOU
-            </span>
-
-            <p>
-              {{ operation.currency }}
-            </p>
-
-          </div>
-
-        </div>
-
-      </ng-container>
-
-
-      <!-- =========================================
-           DATE
-      ========================================== -->
-
-      <ng-container
-        *ngIf="
-          step === 'date' ||
-          step === 'review' ||
-          step === 'created'
-        "
-      >
-
-        <div
-          class="message-row bot message-enter"
-          *ngIf="!isTyping"
-        >
-
-          <div class="avatar">
-            V
-          </div>
-
-          <div class="message">
-
-            <span class="speaker">
-              VOLTA
-            </span>
-
-            <p>
-              Finally, what is your
-              target pickup date?
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="answer-box"
-          *ngIf="
-            step === 'date' &&
-            !isTyping
-          "
-        >
-
-          <div class="input-row">
-
-            <input
-              type="date"
-              [(ngModel)]="
-                operation.mandate_target_date
-              "
-            />
-
-            <button
-              type="button"
-              class="continue-button"
-              (click)="submitDate()"
-            >
-              Review
-              <span>→</span>
-            </button>
-
-          </div>
-
-
-          <div class="quick-answers">
-
-            <span class="quick-label">
-              QUICK SELECT
-            </span>
-
-            <div class="quick-options">
-
-              <button
-                type="button"
-                (click)="chooseDateOffset(1)"
-              >
-                Tomorrow
-              </button>
-
-              <button
-                type="button"
-                (click)="chooseDateOffset(3)"
-              >
-                In 3 days
-              </button>
-
-              <button
-                type="button"
-                (click)="chooseDateOffset(7)"
-              >
-                In 1 week
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="message-row user message-enter"
-          *ngIf="
-            operation.mandate_target_date &&
-            step !== 'date'
-          "
-        >
-
-          <div class="message user-message">
-
-            <span class="speaker">
-              YOU
-            </span>
-
-            <p>
-              {{ operation.mandate_target_date }}
-            </p>
-
-          </div>
-
-        </div>
-
-      </ng-container>
-
-
-      <!-- =========================================
-           TYPING INDICATOR
-      ========================================== -->
-
-      <div
-        class="message-row bot typing-row"
-        *ngIf="isTyping"
-      >
-
-        <div class="avatar">
-          V
-        </div>
-
-        <div class="message typing-message">
-
-          <span class="speaker">
-            VOLTA
-          </span>
-
-          <div class="typing-content">
-
-            <span class="typing-label">
-              Volta is typing
-            </span>
-
-            <div class="typing-dots">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- ERROR -->
-
-      <div
-        class="error-message"
-        *ngIf="errorMessage"
-      >
-        {{ errorMessage }}
-      </div>
-
-
-      <!-- =========================================
-           REVIEW
-      ========================================== -->
-
-      <section
-        class="mandate-card message-enter"
-        *ngIf="
-          step === 'review' &&
-          !isTyping
-        "
-      >
-
-        <div class="mandate-title">
-
-          <div>
-
-            <span>
-              MANDATE READY
-            </span>
-
-            <h2>
-              Freight Negotiation Mandate
-            </h2>
-
-            <p>
-              Review the instructions before
-              creating the operation.
-            </p>
-
-          </div>
-
-          <span class="pending-badge">
-            PENDING
-          </span>
-
-        </div>
-
-
-        <div class="route-summary">
-
-          <div class="route-location">
-
-            <span>
-              ORIGIN
-            </span>
-
-            <strong>
-              {{ operation.origin }}
-            </strong>
-
-          </div>
-
-
-          <div class="route-line">
-
-            <span></span>
-
+      }
+
+      @if (errorMessage) {
+        <p class="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">{{ errorMessage }}</p>
+      }
+
+      @if (!openedFromDeal && step === 'review' && !isTyping) {
+        <div class="cmd-in nauti-card p-5">
+          <div class="flex items-start justify-between gap-3">
             <div>
-              →
+              <p class="nauti-label">Commitment ready</p>
+              <h2 class="mt-1 font-display text-lg font-semibold text-ink">Review before creating</h2>
             </div>
-
-            <span></span>
-
+            <span class="rounded border border-amber/40 bg-amber/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-amber">Pending</span>
           </div>
-
-
-          <div class="route-location">
-
-            <span>
-              DESTINATION
-            </span>
-
-            <strong>
-              {{ operation.destination }}
-            </strong>
-
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <p class="nauti-label">Route</p>
+              <p class="mt-1 text-sm text-ink">{{ operation.origin }} → {{ operation.destination }}</p>
+            </div>
+            <div>
+              <p class="nauti-label">Client</p>
+              <p class="mt-1 text-sm text-ink">{{ selectedClient?.name || '—' }}</p>
+            </div>
+            <div>
+              <p class="nauti-label">Price cap</p>
+              <p class="mt-1 text-sm font-medium text-neon">{{ formatMoney(operation.mandate_max_price) }}</p>
+            </div>
+            <div>
+              <p class="nauti-label">Pickup</p>
+              <p class="mt-1 text-sm text-ink">{{ formatDate(operation.mandate_target_date) }}</p>
+            </div>
           </div>
-
+          <p class="mt-4 text-sm text-muted">Nauti will treat this as the negotiation boundary.</p>
+          <div class="mt-4 flex flex-wrap justify-end gap-2">
+            <button type="button" class="rounded border border-line px-3 py-2 text-sm text-muted hover:text-ink" (click)="editMandate()">
+              Edit
+            </button>
+            <button
+              type="button"
+              class="rounded bg-ink px-3 py-2 text-sm font-medium text-canvas disabled:opacity-50"
+              [disabled]="creatingOperation"
+              (click)="createOperation()"
+            >
+              {{ creatingOperation ? 'Creating…' : 'Create operation' }}
+            </button>
+          </div>
         </div>
+      }
 
-
-        <div class="mandate-grid">
-
-          <div>
-
-            <span>
-              CLIENT
-            </span>
-
-            <strong>
-              {{ selectedClient?.name || '—' }}
-            </strong>
-
-          </div>
-
-
-          <div>
-
-            <span>
-              PRICE CAP
-            </span>
-
-            <strong class="money">
-              {{
-                formatMoney(
-                  operation.mandate_max_price
-                )
-              }}
-            </strong>
-
-          </div>
-
-
-          <div>
-
-            <span>
-              CURRENCY
-            </span>
-
-            <strong>
-              {{ operation.currency }}
-            </strong>
-
-          </div>
-
-
-          <div>
-
-            <span>
-              TARGET DATE
-            </span>
-
-            <strong>
-              {{ operation.mandate_target_date }}
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        <div class="mandate-notice">
-
-          <span>
-            ⚡
-          </span>
-
-          <p>
-            Volta will use this mandate as
-            the negotiation boundary for the
-            operation.
+      @if (step === 'created' && createdOperation) {
+        <div class="cmd-in nauti-card p-6 text-center">
+          <span class="mx-auto flex size-12 items-center justify-center rounded-full border border-neon/40 bg-neon/10 text-lg text-neon">✓</span>
+          <p class="nauti-label mt-4">{{ openedFromDeal ? 'Saved commitment' : 'Operation created' }}</p>
+          <h2 class="mt-1 font-display text-xl font-semibold text-ink">Commitment is on file</h2>
+          <p class="mt-4 font-mono text-xs text-muted">{{ createdOperation.id }}</p>
+          <p class="mt-2 text-sm text-ink">
+            {{ createdOperation.origin }} → {{ createdOperation.destination }}
+            · {{ formatMoney(createdOperation.mandate_max_price, createdOperation.currency) }}
           </p>
-
+          @if (openedFromDeal) {
+            <div class="mt-4 grid gap-3 text-left sm:grid-cols-2">
+              <div>
+                <p class="nauti-label">Pickup</p>
+                <p class="mt-1 text-sm text-ink">{{ formatDate(createdOperation.mandate_target_date) }}</p>
+              </div>
+              <div>
+                <p class="nauti-label">Cargo</p>
+                <p class="mt-1 text-sm text-ink">{{ formatCargo(createdOperation.cargo_category) }}</p>
+              </div>
+              <div>
+                <p class="nauti-label">Container</p>
+                <p class="mt-1 text-sm text-ink">
+                  {{ createdOperation.container_size || '—' }}
+                  · {{ formatContainerType(createdOperation.container_type) }}
+                </p>
+              </div>
+              <div>
+                <p class="nauti-label">Weight</p>
+                <p class="mt-1 text-sm text-ink">{{ formatWeight(createdOperation.weight_kg) }}</p>
+              </div>
+            </div>
+          }
         </div>
 
+        <div class="cmd-in flex items-end gap-2">
+          <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+          <div class="min-w-0 max-w-[min(100%,36rem)]">
+            <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+            <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <p class="text-sm leading-relaxed text-ink">
+                @if (openedFromDeal && !dispatching) {
+                  This commitment is on file. I can call the carriers on this lane again.
+                } @else {
+                  I’m calling the carriers that run this lane. You’ll see every step here as it happens.
+                }
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <div class="mandate-actions">
+        @if (openedFromDeal && !dispatching) {
+          <div class="flex justify-center">
+            <button
+              type="button"
+              class="rounded bg-ink px-4 py-2 text-sm font-medium text-canvas"
+              (click)="retryDispatch()"
+            >
+              Call the carriers again
+            </button>
+          </div>
+        }
 
+        @if (dispatching) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="flex items-center gap-2 rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+              <span class="cmd-dot size-1.5 rounded-full bg-neon"></span>
+              <span class="cmd-dot size-1.5 rounded-full bg-neon [animation-delay:140ms]"></span>
+              <span class="cmd-dot size-1.5 rounded-full bg-neon [animation-delay:280ms]"></span>
+              <span class="text-xs text-muted">Reaching carriers</span>
+            </div>
+          </div>
+        }
+
+        @if (agentCalls.length > 0) {
+          <div class="cmd-in nauti-card p-5">
+            <div class="flex items-center justify-between gap-3">
+              <p class="nauti-label">Agent actions</p>
+              @if (!callsFinished && !pollingError) {
+                <span class="flex items-center gap-2 text-[11px] text-muted">
+                  <span class="cmd-pulse size-1.5 rounded-full bg-neon"></span>
+                  Live
+                </span>
+              }
+            </div>
+            <ol class="mt-4 space-y-4">
+              @for (call of agentCalls; track $index) {
+                <li class="flex gap-3">
+                  <span class="mt-1.5 size-2 shrink-0 rounded-full" [class]="callDotClass(call.status)"></span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <p class="text-sm font-medium text-ink">{{ carrierLabel(call) }}</p>
+                      <span
+                        class="rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide"
+                        [class]="callBadgeClass(call.status)"
+                      >
+                        {{ callStatusLabel(call.status) }}
+                      </span>
+                    </div>
+                    <p class="mt-0.5 font-mono text-[11px] text-muted">{{ call.phone_number }}</p>
+                    @if (call.call_id) {
+                      <p class="mt-0.5 font-mono text-[11px] text-muted">{{ call.call_id }}</p>
+                    }
+                    @if (call.summary) {
+                      <p class="mt-2 text-sm leading-relaxed text-muted">{{ call.summary }}</p>
+                    }
+                    @if (call.user_sentiment) {
+                      <p class="mt-1 text-[11px] text-muted">Sentiment · {{ call.user_sentiment }}</p>
+                    }
+                  </div>
+                </li>
+              }
+            </ol>
+          </div>
+        }
+
+        @if (dispatchError) {
+          <div class="cmd-in rounded-lg border border-danger/40 bg-danger/10 px-3 py-2">
+            <p class="text-sm text-danger">{{ dispatchError }}</p>
+            <button
+              type="button"
+              class="mt-2 rounded border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger"
+              [disabled]="dispatching"
+              (click)="retryDispatch()"
+            >
+              Call the carriers again
+            </button>
+          </div>
+        }
+
+        @if (pollingError) {
+          <div class="cmd-in rounded-lg border border-amber/40 bg-amber/10 px-3 py-2">
+            <p class="text-sm text-amber">{{ pollingError }}</p>
+            <button
+              type="button"
+              class="mt-2 rounded border border-amber/40 px-3 py-1.5 text-xs font-medium text-amber"
+              (click)="resumePolling()"
+            >
+              Resume updates
+            </button>
+          </div>
+        }
+
+        @if (quotes.length > 0) {
+          <div class="cmd-in nauti-card p-5">
+            <p class="nauti-label">Quotes from carriers</p>
+            <div class="mt-4 space-y-3">
+              @for (quote of quotes; track quote.id) {
+                <div class="rounded-lg border border-line bg-raised px-4 py-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p class="text-sm font-medium text-ink">{{ quoteCarrierLabel(quote) }}</p>
+                    <p class="font-display text-lg font-semibold text-neon">
+                      {{ formatMoney(quote.quoted_price, quote.currency) }}
+                    </p>
+                  </div>
+                  <div class="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-muted">
+                    @if (quote.pickup_date) {
+                      <span>Pickup {{ formatDate(quote.pickup_date) }}</span>
+                    }
+                    @if (quote.valid) {
+                      <span class="text-neon">Within budget</span>
+                    } @else {
+                      <span class="text-amber">Over budget</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        } @else if (callsFinished) {
+          <div class="cmd-in flex items-end gap-2">
+            <img src="nauti-mark.png" alt="" class="size-5 shrink-0 rounded-md object-cover" />
+            <div class="min-w-0 max-w-[min(100%,36rem)]">
+              <p class="mb-1 font-mono text-[10px] uppercase tracking-wide text-muted">Agent</p>
+              <div class="rounded-2xl rounded-bl-md border border-line bg-raised px-4 py-3">
+                <p class="text-sm leading-relaxed text-ink">
+                  The calls are done and no carrier left a quote yet. I’ll keep the commitment open in Negotiations.
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="flex justify-center pt-1">
           <button
             type="button"
-            class="edit-button"
-            (click)="editMandate()"
+            class="rounded bg-ink px-4 py-2 text-sm font-medium text-canvas"
+            (click)="startAnother()"
           >
-            ← Edit Mandate
+            Start another
           </button>
-
-          <button
-            type="button"
-            class="deploy-button"
-            [disabled]="creatingOperation"
-            (click)="createOperation()"
-          >
-
-            <span
-              *ngIf="!creatingOperation"
-            >
-              Confirm & Create Operation
-            </span>
-
-            <span
-              *ngIf="creatingOperation"
-            >
-              Creating Operation...
-            </span>
-
-          </button>
-
         </div>
-
-      </section>
-
-
-      <!-- =========================================
-           CREATED
-      ========================================== -->
-
-      <section
-        class="created-card message-enter"
-        *ngIf="
-          step === 'created' &&
-          createdOperation
-        "
-      >
-
-        <div class="success-icon">
-          ✓
-        </div>
-
-        <span class="success-label">
-          OPERATION CREATED
-        </span>
-
-        <h2>
-          Mandate successfully registered
-        </h2>
-
-        <p>
-          This operation is now registered
-          in Nauti and ready to continue into
-          the agent negotiation workflow.
-        </p>
-
-
-        <div class="operation-id">
-
-          <span>
-            OPERATION ID
-          </span>
-
-          <strong>
-            {{ createdOperation.id }}
-          </strong>
-
-        </div>
-
-
-        <div class="created-summary">
-
-          <div>
-            <span>ROUTE</span>
-            <strong>
-              {{ createdOperation.origin }}
-              →
-              {{ createdOperation.destination }}
-            </strong>
-          </div>
-
-          <div>
-            <span>PRICE CAP</span>
-            <strong class="money">
-              {{
-                formatMoney(
-                  createdOperation.mandate_max_price
-                )
-              }}
-            </strong>
-          </div>
-
-          <div>
-            <span>STATUS</span>
-            <strong class="status-value">
-              {{ createdOperation.status }}
-            </strong>
-          </div>
-
-        </div>
-
-
-        <button
-          type="button"
-          class="new-operation-button"
-          (click)="resetConversation()"
-        >
-          + Create Another Operation
-        </button>
-
-      </section>
-
+      }
+      }
     </div>
 
-  </section>
-
-</div>
+    @if (showComposer) {
+      <div class="border-t border-line bg-panel px-4 py-3">
+        @if (!isClientSession && step === 'client') {
+          <input
+            class="nauti-input mb-3 w-full px-3 py-2 text-sm"
+            type="search"
+            [(ngModel)]="clientSearch"
+            [placeholder]="composerPlaceholder"
+            autocomplete="off"
+          />
+          @if (loadingClients) {
+            <p class="py-6 text-center text-sm text-muted">Loading companies…</p>
+          } @else if (uniqueClients.length === 0) {
+            <p class="py-6 text-center text-sm text-muted">No companies match that search.</p>
+          } @else {
+            <div class="max-h-52 space-y-1 overflow-y-auto">
+              @for (client of uniqueClients; track client.id) {
+                <button
+                  type="button"
+                  class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-raised"
+                  (click)="selectClient(client)"
+                >
+                  <span class="flex size-8 shrink-0 items-center justify-center rounded-md border border-line bg-raised text-xs font-semibold text-neon">
+                    {{ clientInitial(client.name) }}
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-sm font-medium text-ink">{{ client.name }}</span>
+                    <span class="block truncate text-xs text-muted">{{ client.contact_name || '—' }}</span>
+                  </span>
+                  <span class="hidden text-right text-[11px] text-muted sm:block">
+                    {{ displayEmail(client.contact_email) }}
+                  </span>
+                </button>
+              }
+            </div>
+          }
+        } @else {
+          <div class="flex items-center gap-2">
+            <input
+              #composerField
+              class="nauti-input min-w-0 flex-1 px-3 py-2.5 text-sm"
+              type="text"
+              [value]="otherDraft"
+              [placeholder]="composerPlaceholder"
+              autocomplete="off"
+              [disabled]="isTyping"
+              (input)="onOtherDraft($event)"
+              (keyup.enter)="submitComposer()"
+            />
+            <button
+              type="button"
+              class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-ink text-canvas disabled:opacity-50"
+              (click)="submitComposer()"
+              [disabled]="isTyping"
+              aria-label="Send"
+            >
+              <svg [lucideIcon]="icons.send" class="size-4"></svg>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </article>
+</section>

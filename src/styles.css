@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
+@import './app/features/command/command.css';
 
 @font-face {
   font-family: Geist;
@@ -24,7 +25,30 @@
 @plugin "daisyui/theme" {
   name: 'nauti';
   default: true;
-  prefersdark: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f4f4f5;
+  --color-base-300: #e4e4e7;
+  --color-base-content: #18181b;
+  --color-primary: #18181b;
+  --color-primary-content: #fafafa;
+  --color-secondary: #16a34a;
+  --color-secondary-content: #052e16;
+  --color-accent: #16a34a;
+  --color-accent-content: #052e16;
+  --color-neutral: #e4e4e7;
+  --color-neutral-content: #18181b;
+  --color-info: #52525b;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --radius-box: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-selector: 0.25rem;
+}
+
+@plugin "daisyui/theme" {
+  name: 'nauti-dark';
   color-scheme: dark;
   --color-base-100: #131316;
   --color-base-200: #09090b;
@@ -47,33 +71,66 @@
   --radius-selector: 0.25rem;
 }
 
-@theme {
+:root,
+[data-theme='nauti'] {
+  --nauti-canvas: #f4f4f5;
+  --nauti-panel: #ffffff;
+  --nauti-raised: #fafafa;
+  --nauti-line: #e4e4e7;
+  --nauti-ink: #18181b;
+  --nauti-muted: #71717a;
+  --nauti-neon: #16a34a;
+  --nauti-amber: #d97706;
+  --nauti-danger: #dc2626;
+  --nauti-input: #ffffff;
+  --nauti-card-from: #ffffff;
+  --nauti-card-to: #f4f4f5;
+  --nauti-terminal: #f4f4f5;
+}
+
+[data-theme='nauti-dark'] {
+  --nauti-canvas: #131316;
+  --nauti-panel: #09090b;
+  --nauti-raised: #18181b;
+  --nauti-line: #27272a;
+  --nauti-ink: #e4e1e5;
+  --nauti-muted: #c8c5ca;
+  --nauti-neon: #4ade80;
+  --nauti-amber: #fbbf24;
+  --nauti-danger: #f87171;
+  --nauti-input: #0e0e11;
+  --nauti-card-from: #09090b;
+  --nauti-card-to: #18181b;
+  --nauti-terminal: #000000;
+}
+
+@theme inline {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
   --font-display: Geist, Inter, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --color-canvas: #131316;
-  --color-panel: #09090b;
-  --color-raised: #18181b;
-  --color-line: #27272a;
-  --color-ink: #e4e1e5;
-  --color-muted: #c8c5ca;
-  --color-neon: #4ade80;
-  --color-amber: #fbbf24;
-  --color-danger: #f87171;
+  --color-canvas: var(--nauti-canvas);
+  --color-panel: var(--nauti-panel);
+  --color-raised: var(--nauti-raised);
+  --color-line: var(--nauti-line);
+  --color-ink: var(--nauti-ink);
+  --color-muted: var(--nauti-muted);
+  --color-neon: var(--nauti-neon);
+  --color-amber: var(--nauti-amber);
+  --color-danger: var(--nauti-danger);
 }
 
 html,
 body {
   min-height: 100%;
   margin: 0;
-  background: #131316;
-  color: #e4e1e5;
+  background: var(--nauti-canvas);
+  color: var(--nauti-ink);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
 .nauti-card {
-  background: linear-gradient(135deg, #09090b 0%, #18181b 100%);
-  border: 1px solid #27272a;
+  background: linear-gradient(135deg, var(--nauti-card-from) 0%, var(--nauti-card-to) 100%);
+  border: 1px solid var(--nauti-line);
   border-radius: 8px;
 }
 
@@ -83,12 +140,12 @@ body {
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #c8c5ca;
+  color: var(--nauti-muted);
 }
 
 .nauti-terminal {
-  background: #000;
-  border: 1px solid #27272a;
+  background: var(--nauti-terminal);
+  border: 1px solid var(--nauti-line);
   border-radius: 0;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 13px;
@@ -96,13 +153,13 @@ body {
 }
 
 .nauti-input {
-  background: #0e0e11;
-  border: 1px solid #27272a;
+  background: var(--nauti-input);
+  border: 1px solid var(--nauti-line);
   border-radius: 4px;
-  color: #e4e1e5;
+  color: var(--nauti-ink);
 }
 
 .nauti-input:focus {
   outline: none;
-  border-color: #a1a1aa;
+  border-color: var(--nauti-muted);
 }

@@ -1,0 +1,15 @@
+<button
+  type="button"
+  (click)="toggle()"
+  [attr.aria-label]="mode() === 'nauti-dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+  [class]="
+    compact()
+      ? 'flex size-10 items-center justify-center rounded border border-line text-muted hover:text-ink'
+      : 'flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm text-muted hover:text-ink'
+  "
+>
+  <svg [lucideIcon]="mode() === 'nauti-dark' ? icons.sun : icons.moon" class="size-4"></svg>
+  @if (!compact()) {
+    {{ mode() === 'nauti-dark' ? 'Light mode' : 'Dark mode' }}
+  }
+</button>

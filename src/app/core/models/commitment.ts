@@ -1,4 +1,6 @@
 import { Call } from './call';
+import { Carrier } from './carrier';
+import { Operation } from './operation';
 
 export interface Commitment {
   id: string;
@@ -9,7 +11,10 @@ export interface Commitment {
   agreed_date: string;
   recap_sent: string;
   call_id?: string;
+  keys?: string[];
   call?: Call | null;
+  operation?: Operation | null;
+  carrier?: Carrier | null;
   created_at: string;
 }
 

@@ -1,0 +1,73 @@
+<section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+  <header class="flex flex-wrap items-center justify-between gap-4 px-6 py-6 lg:px-8">
+    <h1 class="font-display text-[32px] font-semibold tracking-[-0.02em] text-ink">Call logs</h1>
+    <label class="nauti-input flex items-center gap-2 px-3 py-2">
+      <svg [lucideIcon]="icons.search" class="size-4 text-muted"></svg>
+      <input
+        type="search"
+        class="w-56 bg-transparent text-sm text-ink placeholder:text-muted/70 focus:outline-none"
+        placeholder="Search calls..."
+        [value]="query()"
+        (input)="onSearch($event)"
+      />
+    </label>
+  </header>
+
+  <div class="min-h-0 flex-1 overflow-auto px-6 pb-6 lg:px-8">
+    <article class="nauti-card overflow-hidden">
+      <table class="w-full text-left">
+        <thead class="bg-panel">
+          <tr class="nauti-label border-b border-line">
+            <th class="px-4 py-2 font-medium">Date</th>
+            <th class="px-4 py-2 font-medium">Contact</th>
+            <th class="px-4 py-2 font-medium">Duration</th>
+            <th class="px-4 py-2 font-medium">Status</th>
+            <th class="px-4 py-2 font-medium">Summary</th>
+            <th class="px-4 py-2 font-medium">Audio</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loadError()) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-danger" colspan="6">{{ loadError() }}</td>
+            </tr>
+          } @else if (loading()) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-muted" colspan="6">Loading calls…</td>
+            </tr>
+          } @else if (visible().length === 0) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-muted" colspan="6">No calls for this client yet.</td>
+            </tr>
+          } @else {
+            @for (call of visible(); track call.id) {
+              <tr class="border-b border-line/60">
+                <td class="px-4 py-3 font-mono text-xs text-muted">
+                  {{ call.created_at ? (call.created_at | date: 'medium') : '—' }}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  <p>{{ call.contact_name || '—' }}</p>
+                  <p class="font-mono text-[11px] text-muted">{{ call.contact_phone || call.to_number || '' }}</p>
+                </td>
+                <td class="px-4 py-3 font-mono text-sm">{{ durationLabel(call.duration) }}</td>
+                <td class="px-4 py-3 font-mono text-[11px] uppercase text-muted">
+                  {{ call.status || '—' }}
+                </td>
+                <td class="px-4 py-3 text-sm text-ink">{{ call.summary || '—' }}</td>
+                <td class="px-4 py-3 text-sm">
+                  @if (call.url) {
+                    <a class="text-neon hover:underline" [href]="call.url" target="_blank" rel="noreferrer">
+                      Open
+                    </a>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </article>
+  </div>
+</section>

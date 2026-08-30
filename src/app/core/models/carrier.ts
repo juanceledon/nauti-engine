@@ -4,6 +4,7 @@ export interface Carrier {
   owner_name: string;
   phone: string;
   email: string;
+  type: string;
   supported_routes: string[];
   price_memory: Record<string, number>;
   info_link: string;
@@ -17,6 +18,7 @@ export interface CarrierWrite {
   owner_name: string;
   phone: string;
   email: string;
+  type: string;
   supported_routes: string[];
   info_link: string;
   agent_summary: string;
@@ -29,6 +31,7 @@ export function emptyCarrierWrite(): CarrierWrite {
     owner_name: '',
     phone: '',
     email: '',
+    type: '',
     supported_routes: [],
     info_link: '',
     agent_summary: '',
@@ -56,6 +59,7 @@ export function carrierToWrite(carrier: Carrier): CarrierWrite {
     owner_name: carrier.owner_name,
     phone: carrier.phone,
     email: carrier.email,
+    type: carrier.type ?? '',
     supported_routes: carrierRoutes(carrier),
     info_link: carrier.info_link,
     agent_summary: carrier.agent_summary,
@@ -76,4 +80,5 @@ export interface CarrierListQuery {
   route?: string;
   page?: number;
   page_size?: number;
+  client_id?: string;
 }

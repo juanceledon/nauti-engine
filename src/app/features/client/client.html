@@ -100,7 +100,7 @@
       <strong class="kpi-value money-value">
         {{ loadingKpis() ? '—' : formatMxn(kpis().total_savings_mxn) }}
       </strong>
-      <p class="kpi-description">Savings versus client-authorized mandate budgets.</p>
+      <p class="kpi-description">Savings versus the authorized budget.</p>
     </article>
 
     <article class="kpi-card">
@@ -115,7 +115,7 @@
 
     <article class="kpi-card">
       <div class="kpi-card-top">
-        <span class="kpi-label">MANDATE COMPLIANCE</span>
+        <span class="kpi-label">BUDGET COMPLIANCE</span>
       </div>
       <strong class="kpi-value">
         {{ loadingKpis() ? '—' : formatPercentage(kpis().mandate_compliance_rate) }}

@@ -1,323 +1,117 @@
-<div class="quote-page">
-
-  <header class="quote-header">
-
+<section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+  <header class="flex flex-wrap items-center justify-between gap-4 px-6 py-6 lg:px-8">
     <div>
-
-      <span class="eyebrow">
-        NEGOTIATION DATA
-      </span>
-
-      <h1>
-        Quote History
-      </h1>
-
-      <p>
-        Historical carrier quotes captured
-        by the autonomous negotiation agent.
-      </p>
-
+      <p class="nauti-label">Negotiation data</p>
+      <h1 class="mt-1 font-display text-[32px] font-semibold tracking-[-0.02em] text-ink">Quote history</h1>
+      <p class="mt-1 text-sm text-muted">Carrier quotes captured by the autonomous agent.</p>
     </div>
-
     <button
       type="button"
-      class="refresh-button"
+      class="rounded bg-ink px-3 py-2 text-sm font-medium text-canvas disabled:opacity-50"
       (click)="loadQuotes()"
-      [disabled]="loading"
+      [disabled]="loading()"
     >
-      {{ loading ? 'Refreshing...' : 'Refresh' }}
+      {{ loading() ? 'Refreshing…' : 'Refresh' }}
     </button>
-
   </header>
 
-
-  <section class="filter-panel">
-
-    <div>
-
-      <span class="filter-label">
-        CLIENT ID
-      </span>
-
+  <div class="flex flex-wrap items-end gap-3 px-6 lg:px-8">
+    <label class="block">
+      <span class="nauti-label">Client ID</span>
       <input
+        class="nauti-input mt-2 w-72 px-3 py-2 text-sm"
         type="text"
-        [(ngModel)]="clientIdFilter"
         placeholder="Filter by client ID"
-        (keyup.enter)="applyFilter()"
+        [value]="clientIdFilter()"
+        (input)="onClientId($event)"
+        (keyup.enter)="loadQuotes()"
       />
-
-    </div>
-
+    </label>
     <button
       type="button"
-      class="filter-button"
-      (click)="applyFilter()"
-      [disabled]="loading"
+      class="rounded border border-line px-3 py-2 text-sm text-ink hover:border-ink"
+      (click)="loadQuotes()"
+      [disabled]="loading()"
     >
-      Apply Filter
+      Apply
     </button>
-
     <button
       type="button"
-      class="clear-button"
+      class="rounded px-3 py-2 text-sm text-muted hover:text-ink"
       (click)="clearFilter()"
-      [disabled]="loading"
+      [disabled]="loading()"
     >
       Clear
     </button>
+  </div>
 
-  </section>
-
-
-  <section class="summary-row">
-
-    <article class="summary-card">
-
-      <span>
-        TOTAL QUOTES
-      </span>
-
-      <strong>
-        {{ loading ? '—' : quotes.length }}
-      </strong>
-
-      <small>
-        Historical negotiations
-      </small>
-
+  <div class="px-6 pt-4 lg:px-8">
+    <article class="nauti-card w-fit p-4">
+      <p class="nauti-label">Total quotes</p>
+      <p class="mt-2 font-display text-2xl font-semibold">{{ totalLabel() }}</p>
     </article>
+  </div>
 
-  </section>
-
-
-  <section class="history-panel">
-
-    <div class="panel-header">
-
-      <div>
-
-        <span class="eyebrow">
-          QUOTE DATABASE
-        </span>
-
-        <h2>
-          Negotiation History
-        </h2>
-
-      </div>
-
-      <span class="api-badge">
-        LIVE API
-      </span>
-
-    </div>
-
-
-    <div
-      class="state-message"
-      *ngIf="loading"
-    >
-      Loading quote history...
-    </div>
-
-
-    <div
-      class="error-message"
-      *ngIf="
-        errorMessage &&
-        !loading
-      "
-    >
-      {{ errorMessage }}
-    </div>
-
-
-    <div
-      class="quote-table-wrapper"
-      *ngIf="
-        !loading &&
-        !errorMessage &&
-        quotes.length > 0
-      "
-    >
-
-      <div class="quote-table">
-
-        <div class="quote-row table-header">
-
-          <span>
-            DATE
-          </span>
-
-          <span>
-            OPERATION
-          </span>
-
-          <span>
-            CARRIER
-          </span>
-
-          <span>
-            INITIAL
-          </span>
-
-          <span>
-            QUOTED PRICE
-          </span>
-
-          <span>
-            PICKUP
-          </span>
-
-          <span>
-            MANDATE
-          </span>
-
-        </div>
-
-
-        <div
-          class="quote-record"
-          *ngFor="let quote of quotes"
-        >
-
-          <div class="quote-row">
-
-            <div class="date-cell">
-
-              <strong>
-                {{
-                  formatDate(
-                    quote.created_at
-                  )
-                }}
-              </strong>
-
-              <small>
-                {{
-                  quote.quoted_date
-                  || 'Recorded quote'
-                }}
-              </small>
-
-            </div>
-
-
-            <span
-              class="mono-cell"
-              [title]="quote.operation_id"
-            >
-              {{
-                shortId(
-                  quote.operation_id
-                )
-              }}
-            </span>
-
-
-            <span
-              class="mono-cell"
-              [title]="quote.carrier_id"
-            >
-              {{
-                shortId(
-                  quote.carrier_id
-                )
-              }}
-            </span>
-
-
-            <span class="initial-price">
-              {{
-                formatMoney(
-                  quote.initial_price,
-                  quote.currency
-                )
-              }}
-            </span>
-
-
-            <strong class="quoted-price">
-              {{
-                formatMoney(
-                  quote.quoted_price,
-                  quote.currency
-                )
-              }}
-            </strong>
-
-
-            <span>
-              {{
-                pickupLabel(
-                  quote
-                )
-              }}
-            </span>
-
-
-            <span
-              class="status"
-              [class.valid]="quote.valid"
-              [class.invalid]="!quote.valid"
-            >
-              {{
-                statusLabel(
-                  quote
-                )
-              }}
-            </span>
-
-          </div>
-
-
-          <div
-            class="call-brief"
-            *ngIf="quote.call_brief"
-          >
-
-            <span>
-              CALL BRIEF
-            </span>
-
-            <p>
-              {{ quote.call_brief }}
-            </p>
-
-            <small>
-              Quote ID:
-              {{ quote.id }}
-            </small>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div
-      class="empty-state"
-      *ngIf="
-        !loading &&
-        !errorMessage &&
-        quotes.length === 0
-      "
-    >
-
-      <strong>
-        No quotes found
-      </strong>
-
-      <p>
-        Quotes will appear here when the
-        agent records carrier negotiations.
-      </p>
-
-    </div>
-
-  </section>
-
-</div>
+  <div class="min-h-0 flex-1 overflow-auto px-6 py-6 lg:px-8">
+    <article class="nauti-card overflow-hidden">
+      <table class="w-full text-left">
+        <thead class="bg-panel">
+          <tr class="nauti-label border-b border-line">
+            <th class="px-4 py-2 font-medium">Date</th>
+            <th class="px-4 py-2 font-medium">Operation</th>
+            <th class="px-4 py-2 font-medium">Carrier</th>
+            <th class="px-4 py-2 font-medium">Initial</th>
+            <th class="px-4 py-2 font-medium">Quoted</th>
+            <th class="px-4 py-2 font-medium">Pickup</th>
+            <th class="px-4 py-2 font-medium">Budget</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loadError()) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-danger" colspan="7">{{ loadError() }}</td>
+            </tr>
+          } @else if (loading()) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-muted" colspan="7">Loading quote history…</td>
+            </tr>
+          } @else if (quotes().length === 0) {
+            <tr>
+              <td class="px-4 py-8 text-sm text-muted" colspan="7">No quotes found.</td>
+            </tr>
+          } @else {
+            @for (quote of quotes(); track quote.id) {
+              <tr class="border-b border-line/60">
+                <td class="px-4 py-3">
+                  <p class="text-sm">{{ dateLabel(quote.created_at) }}</p>
+                  <p class="font-mono text-[11px] text-muted">{{ quote.quoted_date || 'Recorded quote' }}</p>
+                </td>
+                <td class="px-4 py-3 font-mono text-xs" [title]="quote.operation_id">
+                  {{ compactId(quote.operation_id) }}
+                </td>
+                <td class="px-4 py-3 font-mono text-xs" [title]="quote.carrier_id">
+                  {{ compactId(quote.carrier_id) }}
+                </td>
+                <td class="px-4 py-3 text-sm text-muted">{{ money(quote.initial_price, quote.currency) }}</td>
+                <td class="px-4 py-3 text-sm font-medium">{{ money(quote.quoted_price, quote.currency) }}</td>
+                <td class="px-4 py-3 text-sm">{{ pickupLabel(quote) }}</td>
+                <td class="px-4 py-3 font-mono text-[11px] uppercase" [class.text-neon]="quote.valid" [class.text-danger]="!quote.valid">
+                  {{ statusLabel(quote) }}
+                </td>
+              </tr>
+              @if (quote.call_brief) {
+                <tr class="border-b border-line/60 bg-panel/60">
+                  <td class="px-4 py-3 text-sm text-muted" colspan="7">
+                    <span class="nauti-label">Call brief</span>
+                    <p class="mt-1 text-ink">{{ quote.call_brief }}</p>
+                    <p class="mt-1 font-mono text-[11px]">Quote {{ quote.id }}</p>
+                  </td>
+                </tr>
+              }
+            }
+          }
+        </tbody>
+      </table>
+    </article>
+  </div>
+</section>
