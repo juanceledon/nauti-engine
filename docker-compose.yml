@@ -2,7 +2,8 @@ services:
   nauti-engine:
     build: .
     ports:
-      - "4096:4096"
+      # Host port 4977 to avoid clashing with local Dapta engine containers on 4096
+      - "4977:4096"
     env_file:
       - .env
     volumes:

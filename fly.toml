@@ -1,6 +1,6 @@
 # fly.toml — nauti-engine (cheapest setup: scale-to-zero)
 app = "nauti-engine"
-primary_region = "bog"
+primary_region = "iad"
 
 [build]
 
@@ -13,7 +13,7 @@ primary_region = "bog"
 
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "512mb"
+  memory = "1gb"
 
 [mounts]
   source = "nauti_data"
