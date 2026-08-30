@@ -1,0 +1,20 @@
+# fly.toml — nauti-engine (cheapest setup: scale-to-zero)
+app = "nauti-engine"
+primary_region = "bog"
+
+[build]
+
+[http_service]
+  internal_port = 4096
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[mounts]
+  source = "nauti_data"
+  destination = "/data"

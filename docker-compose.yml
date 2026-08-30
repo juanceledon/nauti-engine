@@ -1,0 +1,12 @@
+services:
+  nauti-engine:
+    build: .
+    ports:
+      - "4096:4096"
+    env_file:
+      - .env
+    volumes:
+      - nauti-data:/data
+
+volumes:
+  nauti-data:
