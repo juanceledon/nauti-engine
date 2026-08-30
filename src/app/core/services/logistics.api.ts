@@ -7,7 +7,7 @@ import { AnalyticsKpis } from '../models/analytics';
 import { Carrier, CarrierListQuery, CarrierListResponse, CarrierWrite } from '../models/carrier';
 import { Client, ClientWrite } from '../models/client';
 import { Commitment, CommitmentListQuery } from '../models/commitment';
-import { CreateOperationRequest, Operation } from '../models/operation';
+import { CreateOperationRequest, Operation, CallOutboundRequest, CallOutboundResponse } from '../models/operation';
 import { PrimaryRoute } from '../models/primary-route';
 import { Quote, QuoteListQuery } from '../models/quote';
 
@@ -59,6 +59,9 @@ export class LogisticsApi {
     if (query.carrier_id?.trim()) {
       params['carrier_id'] = query.carrier_id.trim();
     }
+    if (query.call_id?.trim()) {
+      params['call_id'] = query.call_id.trim();
+    }
     if (query.status?.trim()) {
       params['status'] = query.status.trim();
     }
@@ -101,6 +104,10 @@ export class LogisticsApi {
     return this.http.post<Operation>(`${API_BASE}/operations`, body);
   }
 
+  callOutbound(body: CallOutboundRequest): Observable<CallOutboundResponse> {
+    return this.http.post<CallOutboundResponse>(`${API_BASE}/operations/call-outbound`, body);
+  }
+
   listOperations(): Observable<Operation[]> {
     return this.http.get<Operation[]>(`${API_BASE}/operations`);
   }
@@ -116,8 +123,11 @@ export class LogisticsApi {
     if (query.carrier_id?.trim()) {
       params['carrier_id'] = query.carrier_id.trim();
     }
-    if (query.recap_sent !== undefined) {
-      params['recap_sent'] = String(query.recap_sent);
+    if (query.call_id?.trim()) {
+      params['call_id'] = query.call_id.trim();
+    }
+    if (query.recap_sent?.trim()) {
+      params['recap_sent'] = query.recap_sent.trim();
     }
     if (query.client_id?.trim()) {
       params['client_id'] = query.client_id.trim();

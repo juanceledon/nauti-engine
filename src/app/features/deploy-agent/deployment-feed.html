@@ -17,7 +17,7 @@
   </div>
   <ul>
     @if (calls().length === 0) {
-      <li class="px-4 py-6 text-sm text-muted">No active calls. Select carriers and press Start Calling.</li>
+      <li class="px-4 py-6 text-sm text-muted">No active calls. Select clients and press Start Calling.</li>
     }
     @for (call of calls(); track call.id) {
       <li
@@ -31,6 +31,8 @@
           class="size-4"
           [class.text-amber]="statusTone(call.status) === 'amber'"
           [class.text-neon]="statusTone(call.status) === 'neon'"
+          [class.text-muted]="statusTone(call.status) === 'muted'"
+          [class.text-danger]="statusTone(call.status) === 'danger'"
           [class.animate-spin]="isSpinning(call.status)"
         ></svg>
         <span class="min-w-0 flex-1">
@@ -41,6 +43,8 @@
           class="font-mono text-xs"
           [class.text-amber]="statusTone(call.status) === 'amber'"
           [class.text-neon]="statusTone(call.status) === 'neon'"
+          [class.text-muted]="statusTone(call.status) === 'muted'"
+          [class.text-danger]="statusTone(call.status) === 'danger'"
         >
           {{ statusLabel(call) }}
         </span>

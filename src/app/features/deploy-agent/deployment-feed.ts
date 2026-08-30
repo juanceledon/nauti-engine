@@ -2,12 +2,19 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import {
   LucideActivity,
   LucideAudioLines,
+  LucideCircleCheck,
   LucideDynamicIcon,
   LucideHourglass,
+  LucidePhone,
+  LucidePhoneOff,
   LucideRefreshCw,
 } from '@lucide/angular';
 
-import { DeploymentCall, DeploymentStatus, formatTalkClock } from '../../core/models/deploy-agent';
+import {
+  DeploymentCall,
+  DeploymentStatus,
+  liveCallStatusLabel,
+} from '../../core/models/deploy-agent';
 
 @Component({
   selector: 'app-deployment-feed',
@@ -22,11 +29,14 @@ export class DeploymentFeed {
     activity: LucideActivity,
     waiting: LucideHourglass,
     calling: LucideRefreshCw,
+    registered: LucidePhone,
     talking: LucideAudioLines,
+    ended: LucideCircleCheck,
+    failed: LucidePhoneOff,
   };
 
   protected readonly pendingCount = computed(
-    () => this.calls().filter((call) => call.status !== 'talking').length,
+    () => this.calls().filter((call) => call.status === 'waiting' || call.status === 'calling' || call.status === 'registered').length,
   );
   protected readonly connectedCount = computed(
     () => this.calls().filter((call) => call.status === 'talking').length,
@@ -37,17 +47,20 @@ export class DeploymentFeed {
   }
 
   protected statusLabel(call: DeploymentCall): string {
-    if (call.status === 'talking') {
-      return `Talking [${formatTalkClock(call.talkSeconds)}]`;
-    }
-    if (call.status === 'waiting') {
-      return 'Waiting';
-    }
-    return 'Calling...';
+    return liveCallStatusLabel(call.status, call.talkSeconds);
   }
 
-  protected statusTone(status: DeploymentStatus): 'amber' | 'neon' {
-    return this.isTalking(status) ? 'neon' : 'amber';
+  protected statusTone(status: DeploymentStatus): 'amber' | 'neon' | 'muted' | 'danger' {
+    if (status === 'talking') {
+      return 'neon';
+    }
+    if (status === 'ended') {
+      return 'muted';
+    }
+    if (status === 'failed') {
+      return 'danger';
+    }
+    return 'amber';
   }
 
   protected isTalking(status: DeploymentStatus): boolean {

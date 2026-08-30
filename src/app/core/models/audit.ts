@@ -22,7 +22,7 @@ export interface NegotiationRow {
   agreedName: string;
   audioSeconds: number;
   audioLink: string;
-  recapSent: boolean;
+  recapSent: string;
   clientName: string;
   clientPhone: string;
   createdAt: string;
@@ -145,11 +145,11 @@ function rowFromCommitment(
     currency: quote?.currency || operation?.currency || 'MXN',
     initialPrice: quote?.initial_price ?? operation?.mandate_max_price ?? null,
     negotiatedPrice: commitment.agreed_price,
-    status: commitment.recap_sent ? 'verified' : 'pending',
+    status: recapText(commitment.recap_sent) ? 'verified' : 'pending',
     agreedName: commitment.agreed_name,
-    audioSeconds: commitment.audio_timestamp,
-    audioLink: commitment.link_audio ?? '',
-    recapSent: commitment.recap_sent,
+    audioSeconds: commitment.call?.duration ?? 0,
+    audioLink: commitment.call?.url ?? '',
+    recapSent: recapText(commitment.recap_sent),
     clientName: client?.name ?? '',
     clientPhone: client?.contact_phone ?? '',
     createdAt: commitment.created_at,
@@ -176,13 +176,17 @@ function rowFromQuote(
     negotiatedPrice: quote.quoted_price,
     status: 'pending',
     agreedName: '',
-    audioSeconds: 0,
-    audioLink: '',
-    recapSent: false,
+    audioSeconds: quote.call?.duration ?? 0,
+    audioLink: quote.call?.url ?? '',
+    recapSent: '',
     clientName: client?.name ?? '',
     clientPhone: client?.contact_phone ?? '',
     createdAt: quote.created_at,
   };
+}
+
+function recapText(value: string | undefined): string {
+  return (value ?? '').trim();
 }
 
 function routeLabel(origin: string, destination: string, carrierName: string): string {

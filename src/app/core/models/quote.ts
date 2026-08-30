@@ -1,3 +1,5 @@
+import { Call } from './call';
+
 export interface Quote {
   id: string;
   operation_id: string;
@@ -11,13 +13,15 @@ export interface Quote {
   status: string;
   created_at: string;
   quoted_date: string;
-  call_brief: string;
+  call_id?: string;
+  call?: Call | null;
 }
 
 export interface QuoteListQuery {
   q?: string;
   operation_id?: string;
   carrier_id?: string;
+  call_id?: string;
   status?: string;
   client_id?: string;
   client_email?: string;

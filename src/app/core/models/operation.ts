@@ -29,3 +29,38 @@ export interface CreateOperationRequest {
   initial_hook: string;
   negotiation_style: NegotiationStyle;
 }
+
+export interface CallOutboundClient {
+  id: string;
+  name: string;
+  contact_name: string;
+  contact_phone: string;
+  contact_email: string;
+}
+
+export interface CallOutboundRequest {
+  operation_ids: string[];
+  origin: string;
+  destination: string;
+  negotiation_style: NegotiationStyle;
+  initial_hook: string;
+  clients: CallOutboundClient[];
+  carriers: string[];
+}
+
+export interface CallOutboundResponse {
+  success: boolean;
+  calls_started: number;
+  message: string;
+  calls: OutboundCallStatus[];
+}
+
+export interface OutboundCallStatus {
+  call_id: string;
+  call_status: string;
+  contact_name: string;
+  contact_phone: string;
+  to_number: string;
+  from_number: string;
+  client_id: string;
+}

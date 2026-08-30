@@ -1,6 +1,6 @@
 import { Carrier, carrierRoutes } from './carrier';
 import { Client } from './client';
-import { NegotiationStyle } from './operation';
+import { NegotiationStyle, OutboundCallStatus } from './operation';
 
 export type { NegotiationStyle };
 
@@ -8,11 +8,21 @@ export const MAX_DEPLOY_CARRIERS = 50;
 export const SECONDS_PER_CARRIER = 45;
 export const COST_PER_CARRIER = 0.12;
 
-export type DeploymentStatus = 'waiting' | 'calling' | 'talking';
+export type DeploymentStatus =
+  | 'waiting'
+  | 'calling'
+  | 'registered'
+  | 'talking'
+  | 'ended'
+  | 'failed';
 
-export type DeploymentCall =
-  | { id: string; label: string; phone: string; status: 'waiting' | 'calling' }
-  | { id: string; label: string; phone: string; status: 'talking'; talkSeconds: number };
+export interface DeploymentCall {
+  id: string;
+  label: string;
+  phone: string;
+  status: DeploymentStatus;
+  talkSeconds?: number;
+}
 
 export interface DeploySettings {
   style: NegotiationStyle;
@@ -68,13 +78,97 @@ export function styleLabel(style: NegotiationStyle): string {
   return 'Balanced';
 }
 
-export function waitingCallsFromCarriers(carriers: Carrier[]): DeploymentCall[] {
-  return carriers.map((carrier) => ({
-    id: carrier.id,
-    label: carrier.name,
-    phone: carrier.phone,
+export function waitingCallsFromClients(clients: Client[]): DeploymentCall[] {
+  return clients.map((client) => ({
+    id: client.id,
+    label: client.name.trim() || client.contact_name.trim(),
+    phone: client.contact_phone,
     status: 'waiting' as const,
   }));
+}
+
+export function callingCallsFromClients(clients: Client[]): DeploymentCall[] {
+  return clients.map((client) => ({
+    id: client.id,
+    label: client.name.trim() || client.contact_name.trim(),
+    phone: client.contact_phone,
+    status: 'calling' as const,
+  }));
+}
+
+export function normalizePhone(value: string): string {
+  return value.replace(/\D/g, '');
+}
+
+export function deploymentStatusFromProvider(status: string): DeploymentStatus {
+  const normalized = status.trim().toLowerCase();
+  if (normalized === 'ongoing' || normalized === 'in_progress' || normalized === 'talking') {
+    return 'talking';
+  }
+  if (normalized === 'ended' || normalized === 'completed') {
+    return 'ended';
+  }
+  if (normalized === 'error' || normalized === 'failed' || normalized === 'not_connected') {
+    return 'failed';
+  }
+  if (normalized === 'registered' || normalized === 'queued' || normalized === 'ringing') {
+    return 'registered';
+  }
+  if (normalized === 'waiting') {
+    return 'waiting';
+  }
+  return 'calling';
+}
+
+export function liveCallStatusLabel(status: DeploymentStatus, talkSeconds?: number): string {
+  if (status === 'talking') {
+    return talkSeconds != null ? `Talking [${formatTalkClock(talkSeconds)}]` : 'Talking';
+  }
+  if (status === 'waiting') {
+    return 'Waiting';
+  }
+  if (status === 'registered') {
+    return 'Registered';
+  }
+  if (status === 'ended') {
+    return 'Ended';
+  }
+  if (status === 'failed') {
+    return 'Failed';
+  }
+  return 'Calling...';
+}
+
+export function applyLiveCallStatus(
+  rows: DeploymentCall[],
+  live: OutboundCallStatus[],
+): DeploymentCall[] {
+  return rows.map((row) => {
+    const match = findMatchingLiveCall(live, row);
+    if (!match?.call_status?.trim()) {
+      return row;
+    }
+    const status = deploymentStatusFromProvider(match.call_status);
+    return {
+      ...row,
+      phone: match.to_number || match.contact_phone || row.phone,
+      status,
+    };
+  });
+}
+
+function findMatchingLiveCall(
+  live: OutboundCallStatus[],
+  row: DeploymentCall,
+): OutboundCallStatus | undefined {
+  const phone = normalizePhone(row.phone);
+  return live.find((call) => {
+    if (call.client_id && call.client_id === row.id) {
+      return true;
+    }
+    const callPhone = normalizePhone(call.contact_phone || call.to_number || '');
+    return Boolean(phone && callPhone && callPhone === phone);
+  });
 }
 
 export function carrierMatchesSearch(carrier: Carrier, needle: string): boolean {

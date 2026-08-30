@@ -118,7 +118,7 @@
               </span>
             </div>
             <p class="mt-2 text-zinc-300">
-              Nauti · {{ quote.call_brief || ('Quote $' + quote.quoted_price) }}
+              Nauti · {{ quote.call?.summary || ('Quote $' + quote.quoted_price) }}
             </p>
           </li>
         }

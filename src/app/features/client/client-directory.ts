@@ -1,305 +1,135 @@
 import {
+  ChangeDetectionStrategy,
   Component,
-  OnInit
+  computed,
+  inject,
+  OnInit,
+  signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
-import {
-  CommonModule
-} from '@angular/common';
-
-import {
-  FormsModule
-} from '@angular/forms';
-
-import {
-  Router
-} from '@angular/router';
-
-import {
-  Client,
-  ClientWrite,
-  emptyClientWrite
-} from '../../core/models/client';
-
-import {
-  ClientService
-} from '../../core/services/client.service';
+import { Client, ClientWrite, emptyClientWrite } from '../../core/models/client';
+import { ClientService } from '../../core/services/client.service';
 
 @Component({
   selector: 'app-client-directory',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule
-  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule],
   templateUrl: './client-directory.html',
-  styleUrls: ['./client-directory.css']
+  styleUrls: ['./client-directory.css'],
 })
 export class ClientDirectory implements OnInit {
+  private readonly clientService = inject(ClientService);
+  private readonly router = inject(Router);
 
-  clients: Client[] = [];
+  protected readonly clients = signal<Client[]>([]);
+  protected readonly searchTerm = signal('');
+  protected readonly loading = signal(false);
+  protected readonly creating = signal(false);
+  protected readonly errorMessage = signal('');
+  protected readonly successMessage = signal('');
+  protected readonly showCreateClient = signal(false);
+  protected readonly newClient = signal<ClientWrite>(emptyClientWrite());
 
-  searchTerm = '';
-
-  loading = false;
-
-  creating = false;
-
-  errorMessage = '';
-
-  successMessage = '';
-
-  showCreateClient = false;
-
-  newClient: ClientWrite =
-    emptyClientWrite();
-
-
-  constructor(
-    private clientService: ClientService,
-    private router: Router
-  ) {}
-
+  protected readonly filteredClients = computed(() => {
+    const search = this.searchTerm().trim().toLowerCase();
+    const rows = this.clients();
+    if (!search) {
+      return rows;
+    }
+    return rows.filter(
+      (client) =>
+        client.name.toLowerCase().includes(search) ||
+        client.contact_name.toLowerCase().includes(search) ||
+        client.contact_email.toLowerCase().includes(search) ||
+        client.contact_phone.toLowerCase().includes(search) ||
+        client.id.toLowerCase().includes(search),
+    );
+  });
 
   ngOnInit(): void {
     this.loadClients();
   }
 
-
-  loadClients(): void {
-
-    this.loading = true;
-
-    this.errorMessage = '';
-
+  protected loadClients(): void {
+    this.loading.set(true);
+    this.errorMessage.set('');
     this.clientService
       .getClients()
+      .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-
-        next: (clients) => {
-
-          console.log(
-            'Clients loaded:',
-            clients
-          );
-
-          this.clients = clients;
-
-          this.loading = false;
-
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Error loading clients:',
-            error
-          );
-
-          this.errorMessage =
-            'Could not load clients.';
-
-          this.loading = false;
-
-        }
-
+        next: (clients) => this.clients.set(clients),
+        error: () => this.errorMessage.set('Could not load clients.'),
       });
   }
 
-
-  get filteredClients(): Client[] {
-
-    const search =
-      this.searchTerm
-        .trim()
-        .toLowerCase();
-
-    if (!search) {
-      return this.clients;
-    }
-
-    return this.clients.filter(
-      client =>
-
-        client.name
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        client.contact_name
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        client.contact_email
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        client.contact_phone
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        client.id
-          .toLowerCase()
-          .includes(search)
-
-    );
+  protected openClient(client: Client): void {
+    void this.router.navigate(['/client', client.id]);
   }
 
+  protected openCreateClient(): void {
+    this.newClient.set(emptyClientWrite());
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.showCreateClient.set(true);
+  }
 
-  openClient(
-    client: Client
+  protected closeCreateClient(): void {
+    if (this.creating()) {
+      return;
+    }
+    this.showCreateClient.set(false);
+    this.errorMessage.set('');
+  }
+
+  protected patchNewClient(
+    key: 'name' | 'contact_name' | 'contact_phone' | 'contact_email',
+    value: string,
   ): void {
-
-    this.router.navigate([
-      '/client',
-      client.id
-    ]);
+    this.newClient.update((current) => ({ ...current, [key]: value }));
   }
 
-
-  openCreateClient(): void {
-
-    console.log(
-      'Opening create client modal'
-    );
-
-    this.newClient =
-      emptyClientWrite();
-
-    this.errorMessage = '';
-
-    this.successMessage = '';
-
-    this.showCreateClient = true;
-  }
-
-
-  closeCreateClient(): void {
-
-    if (this.creating) {
-      return;
-    }
-
-    this.showCreateClient = false;
-
-    this.errorMessage = '';
-  }
-
-
-  createClient(): void {
-
-    console.log(
-      'Create client clicked'
-    );
-
-    console.log(
-      'Payload:',
-      this.newClient
-    );
-
-
+  protected createClient(): void {
+    const payload = this.newClient();
     if (
-      !this.newClient.name.trim() ||
-      !this.newClient.contact_name.trim() ||
-      !this.newClient.contact_phone.trim() ||
-      !this.newClient.contact_email.trim()
+      !payload.name.trim() ||
+      !payload.contact_name.trim() ||
+      !payload.contact_phone.trim() ||
+      !payload.contact_email.trim()
     ) {
-
-      this.errorMessage =
-        'Complete all client fields.';
-
+      this.errorMessage.set('Complete all client fields.');
       return;
     }
 
-
-    this.creating = true;
-
-    this.errorMessage = '';
-
-    this.successMessage = '';
-
+    this.creating.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
 
     this.clientService
-      .createClient(
-        this.newClient
-      )
+      .createClient(payload)
+      .pipe(finalize(() => this.creating.set(false)))
       .subscribe({
-
-        next: (createdClient) => {
-
-          console.log(
-            'Client created:',
-            createdClient
-          );
-
-          this.creating = false;
-
-          this.showCreateClient = false;
-
-          this.newClient =
-            emptyClientWrite();
-
-          this.successMessage =
-            'Client created successfully.';
-
-          /*
-           * Always reload from backend
-           * so the directory reflects
-           * the real API state.
-           */
+        next: () => {
+          this.showCreateClient.set(false);
+          this.newClient.set(emptyClientWrite());
+          this.successMessage.set('Client created successfully.');
           this.loadClients();
-
         },
-
-        error: (error) => {
-
-          console.error(
-            'Error creating client:',
-            error
-          );
-
-          console.error(
-            'Backend response:',
-            error?.error
-          );
-
-
-          if (
-            typeof error?.error?.detail === 'string'
-          ) {
-
-            this.errorMessage =
-              error.error.detail;
-
-          } else if (
-            error?.error?.detail
-          ) {
-
-            this.errorMessage =
-              JSON.stringify(
-                error.error.detail
-              );
-
-          } else {
-
-            this.errorMessage =
-              'Could not create client.';
-
+        error: (error: { error?: { detail?: string | unknown } }) => {
+          const detail = error?.error?.detail;
+          if (typeof detail === 'string') {
+            this.errorMessage.set(detail);
+            return;
           }
-
-
-          this.creating = false;
-
-        }
-
+          if (detail) {
+            this.errorMessage.set(JSON.stringify(detail));
+            return;
+          }
+          this.errorMessage.set('Could not create client.');
+        },
       });
   }
-
 }

@@ -10,11 +10,13 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LucideDynamicIcon, LucidePlay } from '@lucide/angular';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 
 import { Carrier, carrierRoutes } from '../../core/models/carrier';
 import { Client, ClientWrite } from '../../core/models/client';
 import {
+  applyLiveCallStatus,
+  callingCallsFromClients,
   DEFAULT_MANDATE_BUDGET,
   defaultMandateDeadline,
   DeploySettings,
@@ -23,7 +25,7 @@ import {
   estimateCallDuration,
   MAX_DEPLOY_CARRIERS,
   projectCallCost,
-  waitingCallsFromCarriers,
+  waitingCallsFromClients,
 } from '../../core/models/deploy-agent';
 import { LogisticsApi } from '../../core/services/logistics.api';
 import { splitLane } from '../../core/utils/routes';
@@ -64,6 +66,10 @@ export class DeployAgent implements OnInit {
   protected readonly selectedCarriers = computed(() => {
     const ids = new Set(this.selectedCarrierIds());
     return this.carriers().filter((carrier) => ids.has(carrier.id));
+  });
+  protected readonly selectedClients = computed(() => {
+    const ids = new Set(this.selectedClientIds());
+    return this.clients().filter((client) => ids.has(client.id));
   });
   protected readonly canStart = computed(
     () => this.selectedCarriers().length > 0 && this.selectedClientIds().length > 0,
@@ -178,8 +184,10 @@ export class DeployAgent implements OnInit {
     }
     const draft = this.settings();
     const clientIds = this.selectedClientIds();
+    const clients = this.selectedClients();
     this.starting.set(true);
     this.startError.set(null);
+    this.feed.set(callingCallsFromClients(clients));
     forkJoin(
       clientIds.map((clientId) =>
         this.api
@@ -199,24 +207,70 @@ export class DeployAgent implements OnInit {
           ),
       ),
     )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((results) => {
+      .pipe(
+        switchMap((results) => {
+          const created = results.filter((result) => result.ok).map((result) => result.operation);
+          const failed = results.find((result) => !result.ok);
+          if (created.length === 0) {
+            return of({ created, failed, outboundError: null as unknown, outbound: null });
+          }
+          return this.api
+            .callOutbound({
+              operation_ids: created.map((operation) => operation.id),
+              origin: lane.origin,
+              destination: lane.destination,
+              negotiation_style: draft.style,
+              initial_hook: draft.hook.trim(),
+              clients: clients.map((client) => ({
+                id: client.id,
+                name: client.name,
+                contact_name: client.contact_name,
+                contact_phone: client.contact_phone,
+                contact_email: client.contact_email,
+              })),
+              carriers: selected.map((carrier) => carrier.id),
+            })
+            .pipe(
+              map((outbound) => ({ created, failed, outboundError: null as unknown, outbound })),
+              catchError((err: unknown) => of({ created, failed, outboundError: err, outbound: null })),
+            );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((outcome) => {
         this.starting.set(false);
-        const created = results.filter((result) => result.ok).map((result) => result.operation);
-        const failed = results.find((result) => !result.ok);
-        if (created.length > 0) {
-          this.operationIds.set(created.map((operation) => operation.id));
-          this.feed.set(waitingCallsFromCarriers(selected));
+        if (outcome.created.length === 0) {
+          this.feed.set([]);
+        } else {
+          this.operationIds.set(outcome.created.map((operation) => operation.id));
+          const daptaCalls = outcome.outbound?.calls ?? [];
+          if (outcome.outboundError) {
+            this.feed.set(waitingCallsFromClients(clients));
+          } else if (daptaCalls.length > 0) {
+            this.feed.update((rows) => applyLiveCallStatus(rows, daptaCalls));
+          }
         }
-        if (failed) {
-          this.startError.set(
+        const errors: string[] = [];
+        if (outcome.failed && !outcome.failed.ok) {
+          errors.push(
             this.readApiError(
-              failed.err,
-              created.length > 0
+              outcome.failed.err,
+              outcome.created.length > 0
                 ? 'Created some operations, but one or more clients failed.'
                 : 'Could not create the operation.',
             ),
           );
+        }
+        if (outcome.outboundError) {
+          errors.push(
+            this.readApiError(
+              outcome.outboundError,
+              'Operations created, but Dapta did not return call statuses.',
+            ),
+          );
+        }
+        if (errors.length > 0) {
+          this.startError.set(errors.join(' '));
         }
       });
   }
