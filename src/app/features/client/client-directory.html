@@ -5,6 +5,7 @@
   <header class="directory-header">
 
     <div>
+
       <span class="directory-eyebrow">
         CLIENT MANAGEMENT
       </span>
@@ -16,19 +17,26 @@
       <p>
         Manage active clients and access their logistics control towers.
       </p>
+
     </div>
+
 
     <div class="header-actions">
 
       <div class="search-box">
-        <span>⌕</span>
+
+        <span>
+          ⌕
+        </span>
 
         <input
           type="text"
           [(ngModel)]="searchTerm"
           placeholder="Search clients..."
         />
+
       </div>
+
 
       <button
         type="button"
@@ -64,11 +72,11 @@
       </span>
 
       <strong>
-        {{ clients.length }}
+        {{ filteredClients.length }}
       </strong>
 
       <small>
-        Registered client accounts
+        Unique client accounts
       </small>
 
     </article>
@@ -77,15 +85,15 @@
     <article class="metric-card">
 
       <span>
-        CURRENT VIEW
+        RECORDS RECEIVED
       </span>
 
       <strong>
-        {{ filteredClients.length }}
+        {{ clients.length }}
       </strong>
 
       <small>
-        Clients matching search
+        Raw records from backend
       </small>
 
     </article>
@@ -137,8 +145,9 @@
         type="button"
         class="refresh-button"
         (click)="loadClients()"
+        [disabled]="loading"
       >
-        Refresh
+        {{ loading ? 'Refreshing...' : 'Refresh' }}
       </button>
 
     </div>
@@ -214,13 +223,18 @@
         <div class="client-name">
 
           <span class="client-avatar">
-            {{ client.name.charAt(0).toUpperCase() }}
+            {{
+              client.name
+                ? client.name.charAt(0).toUpperCase()
+                : '?'
+            }}
           </span>
+
 
           <div class="client-name-text">
 
             <strong>
-              {{ client.name }}
+              {{ client.name || 'Unnamed client' }}
             </strong>
 
             <small>
@@ -249,14 +263,25 @@
         <!-- EMAIL -->
 
         <span class="client-email">
-          {{ client.contact_email || '—' }}
+
+          {{
+            client.contact_email &&
+            client.contact_email !== 'undefined' &&
+            client.contact_email !== 'null'
+              ? client.contact_email
+              : '—'
+          }}
+
         </span>
 
 
         <!-- ID -->
 
-        <span class="client-id">
-          {{ client.id }}
+        <span
+          class="client-id"
+          [title]="client.id"
+        >
+          {{ client.id || '—' }}
         </span>
 
 
@@ -327,6 +352,7 @@
         <button
           type="button"
           class="client-modal-close"
+          [disabled]="creating"
           (click)="closeCreateClient()"
         >
           ×
@@ -340,7 +366,7 @@
       </p>
 
 
-      <!-- ERROR -->
+      <!-- MODAL ERROR -->
 
       <div
         class="client-modal-error"
@@ -364,6 +390,7 @@
             type="text"
             [(ngModel)]="newClient.name"
             placeholder="Textiles Pacífico"
+            [disabled]="creating"
           />
 
         </label>
@@ -379,6 +406,7 @@
             type="text"
             [(ngModel)]="newClient.contact_name"
             placeholder="Mariana Torres"
+            [disabled]="creating"
           />
 
         </label>
@@ -394,6 +422,7 @@
             type="tel"
             [(ngModel)]="newClient.contact_phone"
             placeholder="+57 300 000 0000"
+            [disabled]="creating"
           />
 
         </label>
@@ -409,6 +438,8 @@
             type="email"
             [(ngModel)]="newClient.contact_email"
             placeholder="contact@company.com"
+            [disabled]="creating"
+            (keyup.enter)="createClient()"
           />
 
         </label>
@@ -436,9 +467,10 @@
           [disabled]="creating"
           (click)="createClient()"
         >
-          {{ creating
-            ? 'Creating...'
-            : 'Create Client'
+          {{
+            creating
+              ? 'Creating...'
+              : 'Create Client'
           }}
         </button>
 

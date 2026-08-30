@@ -1,0 +1,304 @@
+<div class="logs-page">
+
+  <!-- HEADER -->
+
+  <header class="logs-header">
+
+    <div>
+
+      <span class="eyebrow">
+        AGENT AUDIT TRAIL
+      </span>
+
+      <h1>
+        Call Logs
+      </h1>
+
+      <p>
+        Review autonomous agent calls,
+        negotiation summaries and audio evidence.
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search calls..."
+      />
+
+
+      <button
+        type="button"
+        (click)="loadCalls()"
+        [disabled]="loading"
+      >
+        {{
+          loading
+            ? 'Refreshing...'
+            : 'Refresh'
+        }}
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- SUMMARY -->
+
+  <section class="log-kpis">
+
+    <article>
+
+      <span>
+        TOTAL CALLS
+      </span>
+
+      <strong>
+        {{ calls.length }}
+      </strong>
+
+      <small>
+        Recorded agent interactions
+      </small>
+
+    </article>
+
+
+    <article>
+
+      <span>
+        STATUS
+      </span>
+
+      <strong class="live-value">
+        LIVE
+      </strong>
+
+      <small>
+        Connected to Nauti API
+      </small>
+
+    </article>
+
+  </section>
+
+
+  <!-- ERROR -->
+
+  <div
+    class="error-message"
+    *ngIf="errorMessage"
+  >
+    {{ errorMessage }}
+  </div>
+
+
+  <!-- CALL HISTORY -->
+
+  <section class="logs-panel">
+
+    <div class="panel-heading">
+
+      <div>
+
+        <span>
+          CALL HISTORY
+        </span>
+
+        <h2>
+          Agent Calls
+        </h2>
+
+        <p>
+          Auditable history of calls performed
+          by autonomous agents.
+        </p>
+
+      </div>
+
+
+      <span class="live-badge">
+        LIVE API
+      </span>
+
+    </div>
+
+
+    <!-- LOADING -->
+
+    <div
+      class="loading-state"
+      *ngIf="loading"
+    >
+      Loading call logs...
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div
+      class="logs-table"
+      *ngIf="!loading"
+    >
+
+      <div class="log-row table-heading">
+
+        <span>
+          CALL
+        </span>
+
+        <span>
+          AGENT
+        </span>
+
+        <span>
+          DURATION
+        </span>
+
+        <span>
+          SUMMARY
+        </span>
+
+        <span>
+          AUDIO MARK
+        </span>
+
+        <span>
+          EVIDENCE
+        </span>
+
+      </div>
+
+
+      <div
+        class="log-row"
+        *ngFor="let call of filteredCalls"
+      >
+
+        <!-- CALL -->
+
+        <div class="call-identity">
+
+          <span class="call-icon">
+            ☎
+          </span>
+
+
+          <div>
+
+            <strong>
+              {{
+                call.call_id ||
+                call.id
+              }}
+            </strong>
+
+            <small>
+              {{ call.id }}
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <!-- AGENT -->
+
+        <span>
+          {{ call.agent_id || '—' }}
+        </span>
+
+
+        <!-- DURATION -->
+
+        <span>
+          {{
+            formatDuration(
+              call.duration
+            )
+          }}
+        </span>
+
+
+        <!-- SUMMARY -->
+
+        <span
+          class="summary"
+          [title]="call.summary || ''"
+        >
+          {{
+            call.summary ||
+            'No summary available'
+          }}
+        </span>
+
+
+        <!-- AUDIO TIMESTAMP -->
+
+        <span class="timestamp">
+
+          {{
+            formatTimestamp(
+              call.audio_timestamp
+            )
+          }}
+
+        </span>
+
+
+        <!-- RECORDING -->
+
+        <div>
+
+          <button
+            type="button"
+            class="recording-button"
+            *ngIf="call.url"
+            (click)="openRecording(call)"
+          >
+            ▶ Recording
+          </button>
+
+
+          <span
+            class="no-recording"
+            *ngIf="!call.url"
+          >
+            —
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- EMPTY STATE -->
+
+      <div
+        class="empty-state"
+        *ngIf="
+          filteredCalls.length === 0
+        "
+      >
+
+        <strong>
+          No calls found
+        </strong>
+
+        <span>
+          Agent calls will appear here once
+          they are recorded by the backend.
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>

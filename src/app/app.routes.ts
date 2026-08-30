@@ -22,6 +22,10 @@ import {
   QuoteHistory
 } from './features/quote-history/quote-history';
 
+import {
+  Logs
+} from './features/logs/logs';
+
 
 export const routes: Routes = [
 
@@ -46,10 +50,7 @@ export const routes: Routes = [
 
   {
     path: 'logs',
-    component: Placeholder,
-    data: {
-      title: 'Logs'
-    }
+    component: Logs
   },
 
   {

@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   OnInit
 } from '@angular/core';
@@ -25,6 +26,7 @@ import {
   ClientService
 } from '../../core/services/client.service';
 
+
 @Component({
   selector: 'app-client-directory',
   standalone: true,
@@ -33,7 +35,9 @@ import {
     FormsModule
   ],
   templateUrl: './client-directory.html',
-  styleUrls: ['./client-directory.css']
+  styleUrls: [
+    './client-directory.css'
+  ]
 })
 export class ClientDirectory implements OnInit {
 
@@ -57,7 +61,8 @@ export class ClientDirectory implements OnInit {
 
   constructor(
     private clientService: ClientService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
 
@@ -66,11 +71,18 @@ export class ClientDirectory implements OnInit {
   }
 
 
+  // =====================================
+  // LOAD CLIENTS
+  // =====================================
+
   loadClients(): void {
 
     this.loading = true;
 
     this.errorMessage = '';
+
+    this.cdr.detectChanges();
+
 
     this.clientService
       .getClients()
@@ -83,10 +95,19 @@ export class ClientDirectory implements OnInit {
             clients
           );
 
-          this.clients = clients;
+          this.clients =
+            Array.isArray(clients)
+              ? clients
+              : [];
 
           this.loading = false;
 
+          /*
+           * Important:
+           * forces UI refresh immediately
+           * when HTTP response arrives.
+           */
+          this.cdr.detectChanges();
         },
 
         error: (error) => {
@@ -96,62 +117,138 @@ export class ClientDirectory implements OnInit {
             error
           );
 
+          this.clients = [];
+
           this.errorMessage =
             'Could not load clients.';
 
           this.loading = false;
 
+          this.cdr.detectChanges();
         }
 
       });
   }
 
 
+  // =====================================
+  // DEDUPLICATED CLIENTS + SEARCH
+  // =====================================
+
   get filteredClients(): Client[] {
+
+    const uniqueClients =
+      this.clients.filter(
+        (
+          client,
+          index,
+          array
+        ) => {
+
+          const phone =
+            this.normalizePhone(
+              client.contact_phone
+            );
+
+          const email =
+            this.normalizeEmail(
+              client.contact_email
+            );
+
+          const firstMatchingIndex =
+            array.findIndex(
+              item => {
+
+                const itemPhone =
+                  this.normalizePhone(
+                    item.contact_phone
+                  );
+
+                const itemEmail =
+                  this.normalizeEmail(
+                    item.contact_email
+                  );
+
+                const samePhone =
+                  Boolean(phone) &&
+                  phone === itemPhone;
+
+                const sameEmail =
+                  Boolean(email) &&
+                  email === itemEmail;
+
+                return (
+                  samePhone ||
+                  sameEmail
+                );
+              }
+            );
+
+          return (
+            firstMatchingIndex === index
+          );
+        }
+      );
+
 
     const search =
       this.searchTerm
         .trim()
         .toLowerCase();
 
+
     if (!search) {
-      return this.clients;
+      return uniqueClients;
     }
 
-    return this.clients.filter(
-      client =>
 
-        client.name
-          .toLowerCase()
-          .includes(search)
+    return uniqueClients.filter(
+      client => {
 
-        ||
+        const name =
+          client.name ?? '';
 
-        client.contact_name
-          .toLowerCase()
-          .includes(search)
+        const contactName =
+          client.contact_name ?? '';
 
-        ||
+        const email =
+          client.contact_email ?? '';
 
-        client.contact_email
-          .toLowerCase()
-          .includes(search)
+        const phone =
+          client.contact_phone ?? '';
 
-        ||
+        const id =
+          client.id ?? '';
 
-        client.contact_phone
-          .toLowerCase()
-          .includes(search)
-
-        ||
-
-        client.id
-          .toLowerCase()
-          .includes(search)
-
+        return (
+          name
+            .toLowerCase()
+            .includes(search)
+          ||
+          contactName
+            .toLowerCase()
+            .includes(search)
+          ||
+          email
+            .toLowerCase()
+            .includes(search)
+          ||
+          phone
+            .toLowerCase()
+            .includes(search)
+          ||
+          id
+            .toLowerCase()
+            .includes(search)
+        );
+      }
     );
   }
 
+
+  // =====================================
+  // NAVIGATION
+  // =====================================
 
   openClient(
     client: Client
@@ -164,11 +261,11 @@ export class ClientDirectory implements OnInit {
   }
 
 
-  openCreateClient(): void {
+  // =====================================
+  // CREATE MODAL
+  // =====================================
 
-    console.log(
-      'Opening create client modal'
-    );
+  openCreateClient(): void {
 
     this.newClient =
       emptyClientWrite();
@@ -178,6 +275,8 @@ export class ClientDirectory implements OnInit {
     this.successMessage = '';
 
     this.showCreateClient = true;
+
+    this.cdr.detectChanges();
   }
 
 
@@ -190,30 +289,77 @@ export class ClientDirectory implements OnInit {
     this.showCreateClient = false;
 
     this.errorMessage = '';
+
+    this.cdr.detectChanges();
   }
 
 
+  // =====================================
+  // CREATE CLIENT
+  // =====================================
+
   createClient(): void {
 
-    console.log(
-      'Create client clicked'
-    );
+    /*
+     * Prevent double POST.
+     */
+    if (this.creating) {
+      return;
+    }
 
-    console.log(
-      'Payload:',
-      this.newClient
-    );
+
+    const payload: ClientWrite = {
+
+      ...this.newClient,
+
+      name:
+        this.newClient.name.trim(),
+
+      contact_name:
+        this.newClient
+          .contact_name
+          .trim(),
+
+      contact_phone:
+        this.newClient
+          .contact_phone
+          .trim(),
+
+      contact_email:
+        this.newClient
+          .contact_email
+          .trim()
+    };
 
 
     if (
-      !this.newClient.name.trim() ||
-      !this.newClient.contact_name.trim() ||
-      !this.newClient.contact_phone.trim() ||
-      !this.newClient.contact_email.trim()
+      !payload.name ||
+      !payload.contact_name ||
+      !payload.contact_phone ||
+      !payload.contact_email
     ) {
 
       this.errorMessage =
         'Complete all client fields.';
+
+      this.cdr.detectChanges();
+
+      return;
+    }
+
+
+    const duplicate =
+      this.findDuplicateClient(
+        payload
+      );
+
+
+    if (duplicate) {
+
+      this.errorMessage =
+        'A client with this phone or email already exists.';
+
+      this.cdr.detectChanges();
 
       return;
     }
@@ -225,10 +371,12 @@ export class ClientDirectory implements OnInit {
 
     this.successMessage = '';
 
+    this.cdr.detectChanges();
+
 
     this.clientService
       .createClient(
-        this.newClient
+        payload
       )
       .subscribe({
 
@@ -238,6 +386,17 @@ export class ClientDirectory implements OnInit {
             'Client created:',
             createdClient
           );
+
+
+          /*
+           * Immediate local update.
+           * No second blocking GET.
+           */
+          this.clients = [
+            createdClient,
+            ...this.clients
+          ];
+
 
           this.creating = false;
 
@@ -249,13 +408,11 @@ export class ClientDirectory implements OnInit {
           this.successMessage =
             'Client created successfully.';
 
-          /*
-           * Always reload from backend
-           * so the directory reflects
-           * the real API state.
-           */
-          this.loadClients();
 
+          /*
+           * Immediately paint new state.
+           */
+          this.cdr.detectChanges();
         },
 
         error: (error) => {
@@ -272,7 +429,8 @@ export class ClientDirectory implements OnInit {
 
 
           if (
-            typeof error?.error?.detail === 'string'
+            typeof error?.error?.detail
+            === 'string'
           ) {
 
             this.errorMessage =
@@ -291,15 +449,117 @@ export class ClientDirectory implements OnInit {
 
             this.errorMessage =
               'Could not create client.';
-
           }
 
 
           this.creating = false;
 
+          this.cdr.detectChanges();
         }
 
       });
+  }
+
+
+  // =====================================
+  // DUPLICATE CHECK
+  // =====================================
+
+  private findDuplicateClient(
+    payload: ClientWrite
+  ): Client | undefined {
+
+    const newPhone =
+      this.normalizePhone(
+        payload.contact_phone
+      );
+
+    const newEmail =
+      this.normalizeEmail(
+        payload.contact_email
+      );
+
+
+    return this.clients.find(
+      client => {
+
+        const existingPhone =
+          this.normalizePhone(
+            client.contact_phone
+          );
+
+        const existingEmail =
+          this.normalizeEmail(
+            client.contact_email
+          );
+
+
+        const samePhone =
+          Boolean(newPhone) &&
+          newPhone === existingPhone;
+
+        const sameEmail =
+          Boolean(newEmail) &&
+          newEmail === existingEmail;
+
+
+        return (
+          samePhone ||
+          sameEmail
+        );
+      }
+    );
+  }
+
+
+  // =====================================
+  // NORMALIZERS
+  // =====================================
+
+  private normalizePhone(
+    phone:
+      string |
+      null |
+      undefined
+  ): string {
+
+    if (!phone) {
+      return '';
+    }
+
+    return phone.replace(
+      /\D/g,
+      ''
+    );
+  }
+
+
+  private normalizeEmail(
+    email:
+      string |
+      null |
+      undefined
+  ): string {
+
+    if (!email) {
+      return '';
+    }
+
+    const normalized =
+      email
+        .trim()
+        .toLowerCase();
+
+
+    if (
+      normalized === 'undefined' ||
+      normalized === 'null'
+    ) {
+      return '';
+    }
+
+
+    return normalized;
   }
 
 }
