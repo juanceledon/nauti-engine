@@ -16,7 +16,7 @@ serve:
 	set -a; . ./.env; set +a; opencode serve --port 4096 --hostname 0.0.0.0
 
 test:
-	node --test tests/composer.test.ts
+	node --test tests/*.test.ts
 
 docker-build:
 	docker build -t nauti-engine .
