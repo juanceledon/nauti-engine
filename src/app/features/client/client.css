@@ -694,12 +694,9 @@
   .quote-count {
     align-items: flex-start;
   }
-
 }
 
-
 @media (max-width: 560px) {
-
   .kpi-grid,
   .client-info-grid {
     grid-template-columns: 1fr;
@@ -723,5 +720,4 @@
     flex-direction: column;
     text-align: center;
   }
-
 }
