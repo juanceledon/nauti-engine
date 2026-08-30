@@ -1,6 +1,7 @@
 import { tool } from "@opencode-ai/plugin"
 import {
   buildDispatchPayload,
+  createOperation,
   dispatchCalls,
   envFromProcess,
   fetchCarriers,
@@ -37,12 +38,28 @@ export default tool({
     if (!picked.length) {
       return "No carrier with a phone number is available for this lane. Tell the client the requirement was registered and the operations team will follow up."
     }
+
+    // Register the operation first so the deal shows up in the UI; the calls
+    // then carry its id. Dispatch still proceeds if registration fails.
+    let operationNote = "No operation record created (missing client_id)."
+    let operationId = args.operation_id
+    if (!operationId && args.client_id?.trim()) {
+      try {
+        operationId = (await createOperation(env, args)).id
+        operationNote = `Operation ${operationId} created — the deal is now visible in the client's panel.`
+      } catch (error) {
+        operationNote = `Operation record could not be created (${error instanceof Error ? error.message : error}); calls dispatched anyway.`
+      }
+    } else if (operationId) {
+      operationNote = `Using existing operation ${operationId}.`
+    }
+
     const payload = buildDispatchPayload(
       picked.map((c) => c.phone),
-      args,
+      { ...args, operation_id: operationId },
     )
     const started = await dispatchCalls(env, payload)
     const names = picked.map((c) => c.name).join(", ")
-    return `Dispatched ${picked.length} carrier calls (batch_id: ${started.batch_id}). Carriers: ${names}. Poll results with check_calls using this batch_id; calls typically take a few minutes.`
+    return `Dispatched ${picked.length} carrier calls (batch_id: ${started.batch_id}). Carriers: ${names}. ${operationNote} Poll results with check_calls using this batch_id; calls typically take a few minutes.`
   },
 })

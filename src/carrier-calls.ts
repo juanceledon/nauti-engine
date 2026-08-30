@@ -124,6 +124,32 @@ async function asJson(res: Response, label: string): Promise<any> {
   }
 }
 
+// Creates the operation record in the Nauti backend so the quote shows up in
+// the UI (deals/negotiations lists) exactly like Command-created operations.
+export async function createOperation(env: Env, mandate: Mandate): Promise<{ id: string }> {
+  const res = await fetch(`${env.backendBase}/operations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: mandate.client_id,
+      origin: mandate.origin,
+      destination: mandate.destination,
+      mandate_max_price: mandate.mandate_max_price,
+      currency: mandate.mandate_currency,
+      mandate_target_date: mandate.mandate_target_date,
+      cargo_category: mandate.cargo_category || "general",
+      weight_kg: mandate.weight_kg,
+      container_size: mandate.container_size,
+      container_type: mandate.container_type,
+      hazmat: mandate.hazmat ?? false,
+      pickup_window: mandate.pickup_window,
+      last_free_day: mandate.last_free_day,
+      chassis_required: mandate.chassis_required,
+    }),
+  })
+  return asJson(res, "POST /operations")
+}
+
 export async function fetchCarriers(env: Env): Promise<Carrier[]> {
   const res = await fetch(`${env.backendBase}/carriers?page_size=100`)
   const data = await asJson(res, "GET /carriers")
